@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex h-screen`}
       >
         <Sidebar />
-        <main className="flex-grow ml-64">{children}</main>
+        <main className="flex-grow ml-72">{children}</main>
       </body>
     </html>
   );
