@@ -19,14 +19,14 @@ export default function EventPage({ params }) {
                 
                 const dummyEvent = {
                     id: resolvedParams.id,
-                    name: "Sample Conference 2024",
-                    description: "Join us for an exciting conference featuring industry experts and innovative discussions.\n\nThis multi-day event will cover various topics including technology, business, and personal development.",
+                    name: "Example Event 1",
+                    description: "Example description 1",
                     imageUrl: "/example.jpg",
                     startTime: "2024-03-15T09:00:00",
                     endTime: "2024-03-17T18:00:00",
                     type: "non-compulsory",
-                    location: "Grand Conference Center, Level 2",
-                    groups: ["Technology", "Business", "Professional Development"],
+                    location: "Building 46, 3020",
+                    groups: ["COMP3200", "COMP3210", "COMP3220"],
                     creatorId: "currentUserId"
                 };
 

@@ -10,7 +10,6 @@ export default function Events() {
       </div>
 
       <div className="relative">
-        {/* Search Bar */}
         <div className="mb-8">
           <div className="relative max-w-2xl">
             <input 
@@ -37,21 +36,21 @@ export default function Events() {
           <EventTile 
             imageUrl="/example.jpg"
             title="Event Title 1" 
-            description="Event description goes here" 
+            description="Event description 1" 
             ticketsLeft={100}
             id="1"
           />
           <EventTile
             imageUrl="/example.jpg" 
             title="Event Title 2"
-            description="Another event description"
+            description="Event description 2"
             ticketsLeft={50}
             id="2"
           />
           <EventTile
             imageUrl="/example.jpg"
             title="Event Title 3"
-            description="Yet another event description"
+            description="Event description 3"
             ticketsLeft={75}
             id="3"
           />

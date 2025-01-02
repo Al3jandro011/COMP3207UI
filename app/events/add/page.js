@@ -23,46 +23,61 @@ export default function Add() {
     };
 
     return (
-        <div className="p-8">
-            <h2 className="text-3xl font-bold mb-8 px-4">Add New Event</h2>
+        <div className="p-8 max-w-7xl mx-auto">
+            <div className="mb-8">
+                <h1 className="text-2xl font-semibold text-gray-100 mb-2">Add New Event</h1>
+                <p className="text-gray-400">Create a new event</p>
+            </div>
 
-            <form className="max-w-3xl mx-auto space-y-6 px-4">
-                <div>
-                    <label className="block mb-2 font-semibold">
-                        Name <span className="text-red-500">*</span>
+            <form className="space-y-8">
+                <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
+                    <label className="block mb-2 text-gray-100 font-medium">
+                        Name <span className="text-red-400">*</span>
                     </label>
                     <input 
                         type="text" 
                         required
-                        className="w-full p-2 border rounded-lg text-black"
+                        className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                 text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500
+                                 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                     />
                 </div>
 
-                <div>
-                    <label className="block mb-2 font-semibold">
-                        Description <span className="text-red-500">*</span>
+                <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
+                    <label className="block mb-2 text-gray-100 font-medium">
+                        Description <span className="text-red-400">*</span>
                     </label>
                     <textarea 
                         required
-                        className="w-full p-2 border rounded-lg text-black min-h-[100px]"
+                        className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                 text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500
+                                 focus:ring-1 focus:ring-cyan-500 transition-all duration-200 min-h-[120px]"
                     />
                 </div>
 
-                <div>
-                    <label className="block mb-2 font-semibold">Image</label>
+                <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
+                    <label className="block mb-4 text-gray-100 font-medium">Image</label>
                     <div className="space-y-4">
                         <div className="flex gap-4">
                             <button 
                                 type="button"
                                 onClick={() => setImageType('url')}
-                                className={`px-4 py-2 rounded ${imageType === 'url' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'}`}
+                                className={`px-4 py-2 rounded-lg transition-all duration-200 ${
+                                    imageType === 'url' 
+                                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' 
+                                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                }`}
                             >
                                 URL
                             </button>
                             <button 
                                 type="button"
                                 onClick={() => setImageType('file')}
-                                className={`px-4 py-2 rounded ${imageType === 'file' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'}`}
+                                className={`px-4 py-2 rounded-lg transition-all duration-200 ${
+                                    imageType === 'file' 
+                                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' 
+                                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                }`}
                             >
                                 Upload File
                             </button>
@@ -71,49 +86,63 @@ export default function Add() {
                             <input 
                                 type="url" 
                                 placeholder="Enter image URL"
-                                className="w-full p-2 border rounded-lg text-black"
+                                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                         text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500
+                                         focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                             />
                         ) : (
                             <input 
                                 type="file" 
                                 accept="image/*"
-                                className="w-full p-2 border rounded-lg"
+                                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                         text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+                                         file:bg-gray-700 file:text-gray-300 hover:file:bg-gray-600
+                                         file:cursor-pointer cursor-pointer"
                             />
                         )}
                     </div>
                 </div>
 
-                <div>
-                    <label className="block mb-2 font-semibold">
-                        Type <span className="text-red-500">*</span>
+                <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
+                    <label className="block mb-2 text-gray-100 font-medium">
+                        Type <span className="text-red-400">*</span>
                     </label>
-                    <select required className="w-full p-2 border rounded-lg text-black">
+                    <select 
+                        required 
+                        className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                 text-gray-100 focus:outline-none focus:border-cyan-500
+                                 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+                    >
                         <option value="compulsory">Compulsory</option>
                         <option value="non-compulsory">Non-compulsory</option>
                     </select>
                 </div>
 
-                <div>
-                    <label className="block mb-2 font-semibold">
-                        Groups <span className="text-red-500">*</span>
+                <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
+                    <label className="block mb-4 text-gray-100 font-medium">
+                        Groups <span className="text-red-400">*</span>
                     </label>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                         {groups.map((group, index) => (
                             <div key={index} className="flex gap-2">
                                 <input 
                                     type="text"
                                     value={group}
                                     onChange={(e) => updateGroup(index, e.target.value)}
-                                    className="flex-1 p-2 border rounded-lg text-black"
+                                    className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                             text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500
+                                             focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                                     required
                                 />
                                 {groups.length > 1 && (
                                     <button 
                                         type="button"
                                         onClick={() => removeGroup(index)}
-                                        className="p-2 text-red-500 hover:text-red-700"
+                                        className="p-3 text-red-400 hover:text-red-300 transition-colors"
                                     >
-                                        ✕
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
                                     </button>
                                 )}
                             </div>
@@ -121,65 +150,80 @@ export default function Add() {
                         <button 
                             type="button"
                             onClick={addGroup}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center space-x-1"
                         >
-                            + Add Group
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span>Add Group</span>
                         </button>
                     </div>
                 </div>
 
-                <div>
-                    <label className="block mb-2 font-semibold">
-                        Time Interval <span className="text-red-500">*</span>
+                <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
+                    <label className="block mb-2 text-gray-100 font-medium">
+                        Time Interval <span className="text-red-400">*</span>
                     </label>
                     <div className="flex gap-4">
                         <input 
                             type="datetime-local" 
                             required
-                            className="flex-1 p-2 border rounded-lg text-black"
+                            className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                     text-gray-100 focus:outline-none focus:border-cyan-500
+                                     focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                         />
-                        <span className="flex items-center">to</span>
+                        <span className="flex items-center text-gray-400">to</span>
                         <input 
                             type="datetime-local" 
                             required
-                            className="flex-1 p-2 border rounded-lg text-black"
+                            className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                     text-gray-100 focus:outline-none focus:border-cyan-500
+                                     focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                         />
                     </div>
                 </div>
 
-                <div>
-                    <label className="block mb-2 font-semibold">
-                        Location <span className="text-red-500">*</span>
+                <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
+                    <label className="block mb-2 text-gray-100 font-medium">
+                        Location <span className="text-red-400">*</span>
                     </label>
                     <input 
                         type="text" 
                         required
-                        className="w-full p-2 border rounded-lg text-black"
+                        className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                 text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500
+                                 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                     />
                 </div>
 
-                <div>
-                    <label className="block mb-2 font-semibold">
-                        Maximum Spaces <span className="text-red-500">*</span>
+                <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
+                    <label className="block mb-2 text-gray-100 font-medium">
+                        Maximum Spaces <span className="text-red-400">*</span>
                     </label>
                     <input 
                         type="number" 
                         min="1"
                         required
-                        className="w-full p-2 border rounded-lg text-black"
+                        className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg
+                                 text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500
+                                 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                     />
                 </div>
 
                 <div className="flex gap-4 pt-4">
                     <button 
                         type="submit"
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 
+                                 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg 
+                                 font-medium transition-all duration-200
+                                 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
                     >
                         Add Event
                     </button>
                     <Link 
                         href="/events"
-                        className="px-6 py-2 bg-gray-200 text-black rounded-lg hover:bg-gray-300"
+                        className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-gray-300 
+                                 rounded-lg font-medium transition-all duration-200"
                     >
                         Cancel
                     </Link>
