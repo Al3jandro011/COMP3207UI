@@ -17,8 +17,8 @@ export default function Sidebar() {
 	};
 
 	return (
-		<aside className="h-screen w-64 bg-gray-800 text-white p-4 flex flex-col">
-			<h2 className="text-2xl font-bold mb-4">EVECS</h2>
+		<aside className="fixed top-0 left-0 h-screen w-64 bg-gray-800 text-white p-4 flex flex-col">
+			<Link href="/" onClick={() => selectedPage("Home")} className="text-2xl font-bold mb-4 select-none cursor-pointer">EVECS</Link>
 			<nav className="flex-grow">
 				<ul className="space-y-2">
 					<li className="hover:bg-gray-700 rounded-md cursor-pointer">

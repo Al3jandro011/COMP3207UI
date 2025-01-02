@@ -65,7 +65,6 @@ export default function Timetable() {
                     ))}
                 </div>
 
-                {/* Add tag button and dropdown */}
                 <div className="relative">
                     <button
                         onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
