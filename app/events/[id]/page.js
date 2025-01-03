@@ -87,7 +87,7 @@ export default function EventPage({ params }) {
             
             <div className="space-y-8">
                 <div className="flex justify-between items-start">
-                    <h1 className="text-4xl font-bold text-gray-100">{event.name}</h1>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">{event.name}</h1>
                     <div className="space-x-4">
                         <button
                             onClick={handleTimetableToggle}
@@ -104,8 +104,8 @@ export default function EventPage({ params }) {
                             <>
                                 <a
                                     href={`/events/${resolvedParams.id}/edit`}
-                                    className="inline-block px-4 py-2 bg-gray-700 hover:bg-gray-600 
-                                             text-white rounded-lg font-medium transition-all duration-200
+                                    className="inline-block px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 
+                                             text-gray-900 dark:text-white rounded-lg font-medium transition-all duration-200
                                              focus:ring-2 focus:ring-gray-500/50 focus:outline-none"
                                 >
                                     Edit
@@ -124,7 +124,7 @@ export default function EventPage({ params }) {
                     </div>
                 </div>
 
-                <div className="text-lg text-gray-400">
+                <div className="text-lg text-gray-600 dark:text-gray-400">
                     <div className="flex items-center space-x-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
@@ -136,19 +136,19 @@ export default function EventPage({ params }) {
                     </div>
                 </div>
 
-                <div className="space-y-2 bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
-                    <p className="font-semibold text-gray-100">Type</p>
-                    <p className="text-gray-400 capitalize">{event.type}</p>
+                <div className="space-y-2 bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Type</p>
+                    <p className="text-gray-600 dark:text-gray-400 capitalize">{event.type}</p>
                 </div>
 
-                <div className="space-y-2 bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
-                    <p className="font-semibold text-gray-100">Groups</p>
+                <div className="space-y-2 bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Groups</p>
                     <div className="flex flex-wrap gap-2">
                         {event.groups.map((group, index) => (
                             <span 
                                 key={index}
-                                className="px-3 py-1 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 
-                                         border border-cyan-500/20 rounded-full text-sm text-gray-300"
+                                className="px-3 py-1 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 dark:from-cyan-500/10 dark:to-blue-500/10 
+                                         border border-cyan-500/20 rounded-full text-sm text-gray-700 dark:text-gray-300"
                             >
                                 {group}
                             </span>
@@ -156,14 +156,14 @@ export default function EventPage({ params }) {
                     </div>
                 </div>
 
-                <div className="space-y-2 bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
-                    <p className="font-semibold text-gray-100">Description</p>
-                    <p className="text-gray-400 whitespace-pre-wrap">{event.description}</p>
+                <div className="space-y-2 bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Description</p>
+                    <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{event.description}</p>
                 </div>
 
-                <div className="space-y-2 bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
-                    <p className="font-semibold text-gray-100">Location</p>
-                    <div className="flex items-center space-x-2 text-gray-400">
+                <div className="space-y-2 bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Location</p>
+                    <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
                                   d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

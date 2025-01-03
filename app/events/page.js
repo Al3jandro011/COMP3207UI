@@ -5,8 +5,8 @@ export default function Events() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-100 mb-2">All Events</h1>
-        <p className="text-gray-400">Browse and manage all available events</p>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">All Events</h1>
+        <p className="text-gray-600 dark:text-gray-400">Browse and manage all available events</p>
       </div>
 
       <div className="relative">
@@ -15,12 +15,12 @@ export default function Events() {
             <input 
               type="text" 
               placeholder="Search events..." 
-              className="w-full px-4 py-3 pl-12 bg-gray-800/50 border border-gray-700 rounded-xl 
-                       text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500
+              className="w-full px-4 py-3 pl-12 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl 
+                       text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500
                        focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
             />
             <svg 
-              className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2"
+              className="w-5 h-5 text-gray-500 dark:text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2"
               xmlns="http://www.w3.org/2000/svg" 
               fill="none" 
               viewBox="0 0 24 24" 

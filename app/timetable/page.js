@@ -13,7 +13,8 @@ export default function Timetable() {
 
   const compulsoryOptions = [
     { value: 'yes', label: 'Yes' },
-    { value: 'no', label: 'No' }
+    { value: 'no', label: 'No' },
+    { value: 'all', label: 'All' }
   ];
 
   const availableTags = [
@@ -83,13 +84,13 @@ export default function Timetable() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-100 mb-2">Timetable</h1>
-        <p className="text-gray-400">Manage your event schedule</p>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Timetable</h1>
+        <p className="text-gray-600 dark:text-gray-400">Manage your event schedule</p>
       </div>
       
       <div className="space-y-8">
-        <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
-          <label className="block mb-2 text-gray-100 font-medium">Compulsory Events:</label>
+        <div className="bg-white dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
+          <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">Compulsory Events:</label>
           <Select
             value={compulsory}
             onChange={setCompulsory}
@@ -99,18 +100,18 @@ export default function Timetable() {
           />
         </div>
 
-        <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
-          <label className="block mb-4 text-gray-100 font-medium">Groups:</label>
+        <div className="bg-white dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
+          <label className="block mb-4 text-gray-900 dark:text-gray-100 font-medium">Groups:</label>
           <div className="flex flex-wrap gap-2 mb-4">
             {selectedTags.map((tag) => (
               <div key={tag.value} 
-                   className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 
+                   className="bg-gradient-to-r from-cyan-500/5 to-blue-500/5 dark:from-cyan-500/10 dark:to-blue-500/10 
                             border border-cyan-500/20 px-3 py-1 rounded-full 
-                            flex items-center gap-2 text-gray-300">
+                            flex items-center gap-2 text-gray-700 dark:text-gray-300">
                 {tag.label}
                 <button
                   onClick={() => removeTag(tag)}
-                  className="text-red-400 hover:text-red-300 transition-colors"
+                  className="text-red-500 dark:text-red-400 hover:text-red-400 dark:hover:text-red-300 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -136,15 +137,15 @@ export default function Timetable() {
             </button>
             
             {isTagDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-48 bg-gray-800 
-                            shadow-lg rounded-xl border border-gray-700/50">
+              <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 
+                            shadow-lg rounded-xl border border-gray-200 dark:border-gray-700/50">
                 {availableTags
                   .filter(tag => !selectedTags.find(t => t.value === tag.value))
                   .map(tag => (
                     <div
                       key={tag.value}
-                      className="px-4 py-2 hover:bg-gray-700 cursor-pointer 
-                               text-gray-300 first:rounded-t-xl last:rounded-b-xl
+                      className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer 
+                               text-gray-700 dark:text-gray-300 first:rounded-t-xl last:rounded-b-xl
                                transition-colors duration-150"
                       onClick={() => addTag(tag)}
                     >
@@ -156,8 +157,8 @@ export default function Timetable() {
           </div>
         </div>
 
-        <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50">
-          <div className="text-gray-400 text-center py-8">
+        <div className="bg-white dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
+          <div className="text-gray-600 dark:text-gray-400 text-center py-8">
             No events to show
           </div>
         </div>
