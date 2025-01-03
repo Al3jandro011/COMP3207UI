@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false
@@ -104,51 +105,27 @@ export default function Timetable() {
           <label className="block mb-4 text-gray-900 dark:text-gray-100 font-medium">Groups:</label>
           <div className="flex flex-wrap gap-2 mb-4">
             {selectedTags.map((tag) => (
-              <div key={tag.value} 
-                   className="bg-gradient-to-r from-cyan-500/5 to-blue-500/5 dark:from-cyan-500/10 dark:to-blue-500/10 
-                            border border-cyan-500/20 px-3 py-1 rounded-full 
-                            flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <div key={tag.value} className="bg-gradient-to-r from-cyan-500/5 to-blue-500/5 dark:from-cyan-500/10 dark:to-blue-500/10 border border-cyan-500/20 px-3 py-1 rounded-full flex items-center gap-2 text-gray-700 dark:text-gray-300">
                 {tag.label}
-                <button
-                  onClick={() => removeTag(tag)}
-                  className="text-red-500 dark:text-red-400 hover:text-red-400 dark:hover:text-red-300 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                <button onClick={() => removeTag(tag)} className="text-red-500 dark:text-red-400 hover:text-red-400 dark:hover:text-red-300 transition-colors">
+                  <XMarkIcon className="w-4 h-4" />
                 </button>
               </div>
             ))}
           </div>
 
           <div className="relative">
-            <button
-              onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
-              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 
-                       hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg 
-                       text-sm font-medium transition-all duration-200
-                       focus:ring-2 focus:ring-cyan-500/50 focus:outline-none
-                       flex items-center space-x-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+            <button onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)} className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none flex items-center space-x-2">
+              <PlusIcon className="w-4 h-4" />
               <span>Add Group</span>
             </button>
             
             {isTagDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 
-                            shadow-lg rounded-xl border border-gray-200 dark:border-gray-700/50">
+              <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700/50">
                 {availableTags
                   .filter(tag => !selectedTags.find(t => t.value === tag.value))
                   .map(tag => (
-                    <div
-                      key={tag.value}
-                      className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer 
-                               text-gray-700 dark:text-gray-300 first:rounded-t-xl last:rounded-b-xl
-                               transition-colors duration-150"
-                      onClick={() => addTag(tag)}
-                    >
+                    <div key={tag.value} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-700 dark:text-gray-300 first:rounded-t-xl last:rounded-b-xl transition-colors duration-150" onClick={() => addTag(tag)}>
                       {tag.label}
                     </div>
                   ))}

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import EventTile from '@/components/sidebar/EventTile';
+import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 export default function Events() {
   return (
@@ -19,16 +20,7 @@ export default function Events() {
                        text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500
                        focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
             />
-            <svg 
-              className="w-5 h-5 text-gray-500 dark:text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2"
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              strokeWidth={1.5} 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
+            <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 dark:text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
           </div>
         </div>
         
@@ -64,20 +56,7 @@ export default function Events() {
                    focus:ring-2 focus:ring-cyan-500/50 focus:outline-none
                    group"
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            strokeWidth={2} 
-            stroke="currentColor" 
-            className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              d="M12 4.5v15m7.5-7.5h-15" 
-            />
-          </svg>
+          <PlusIcon className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" />
           <span className="ml-2 text-white font-medium">Add Event</span>
         </Link>
       </div>
