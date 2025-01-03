@@ -1,8 +1,30 @@
+"use client";
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import EventTile from '@/components/sidebar/EventTile';
 import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { makeCalendar } from '@/services/apiServices';
 
 export default function Events() {
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    const today = new Date();
+    const data = {
+      start_date: today.toISOString(),
+      end_date: new Date(8640000000000000).toISOString()
+    };
+
+    makeCalendar(data)
+      .then((res) => {
+        setEvents(res.data || []);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -19,27 +41,16 @@ export default function Events() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <EventTile 
-            imageUrl="/example.jpg"
-            title="Event Title 1" 
-            description="Event description 1" 
-            ticketsLeft={100}
-            id="1"
-          />
-          <EventTile
-            imageUrl="/example.jpg" 
-            title="Event Title 2"
-            description="Event description 2"
-            ticketsLeft={50}
-            id="2"
-          />
-          <EventTile
-            imageUrl="/example.jpg"
-            title="Event Title 3"
-            description="Event description 3"
-            ticketsLeft={75}
-            id="3"
-          />
+          {events.map((event) => (
+            <EventTile
+              key={event.id}
+              imageUrl={event.img_url || "/example.jpg"}
+              title={event.name}
+              description={event.desc}
+              ticketsLeft={event.max_spaces}
+              id={event.id}
+            />
+          ))}
         </div>
 
         <Link href="/events/add" className="fixed bottom-8 right-8 px-4 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none group">

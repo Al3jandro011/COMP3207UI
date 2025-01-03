@@ -4,6 +4,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CalendarIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { getEvent } from '@/services/apiServices';
 
 export default function EventPage({ params }) {
   const [event, setEvent] = useState(null);
@@ -13,7 +14,30 @@ export default function EventPage({ params }) {
   const resolvedParams = React.use(params);
 
   useEffect(() => {
-    // Simulating API call with dummy data
+    const fetchEvent = async () => {
+      try {
+        const data = {
+          event_id: resolvedParams.id,
+          user_id: "1"
+        };
+        
+        const response = await getEvent(data);
+        const eventData = response.data;
+        
+        setEvent(eventData);
+        setIsCreator(eventData.creatorId === "1");
+        setIsInTimetable(false);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching event:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+
+    // Original dummy data code:
+    /*
     const fetchEvent = async () => {
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -42,6 +66,7 @@ export default function EventPage({ params }) {
     };
 
     fetchEvent();
+    */
   }, [resolvedParams.id]);
 
   const handleTimetableToggle = async () => {
@@ -57,8 +82,7 @@ export default function EventPage({ params }) {
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await deleteEvent({ id: resolvedParams.id });
         window.location.href = '/events';
       } catch (error) {
         console.error('Error deleting event:', error);

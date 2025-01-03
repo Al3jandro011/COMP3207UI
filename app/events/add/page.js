@@ -1,12 +1,25 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { createEvent, getLocationsAndGroups } from '@/services/apiServices';
 
 export default function Add() {
   const [groups, setGroups] = useState(['']);
-  const [imageType, setImageType] = useState('url');
+  const [locations, setLocations] = useState([]);
+  const [availableGroups, setAvailableGroups] = useState([]);
+
+  useEffect(() => {
+    getLocationsAndGroups()
+    .then((res) => {
+      setLocations(res.data.locations || []);
+      setAvailableGroups(res.data.groups || []);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, []);
 
   const addGroup = () => {
     setGroups([...groups, '']);
@@ -23,6 +36,32 @@ export default function Add() {
     setGroups(newGroups);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const data = {
+        user_id: "1",
+        name: e.target.name.value,
+        type: e.target.type.value,
+        desc: e.target.description.value,
+        location_id: e.target.location.value,
+        start_date: e.target.startTime.value,
+        end_date: e.target.endTime.value,
+        max_spaces: e.target.maxSpaces.value,
+        tags: groups,
+        img_url: e.target.image.value,
+      };
+      
+      const res = await createEvent(data);
+      console.log(res);
+      window.location.href = '/events';
+    } catch (err) {
+      console.error(err);
+      alert('Failed to create event. Please try again.');
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -30,45 +69,31 @@ export default function Add() {
         <p className="text-gray-600 dark:text-gray-400">Create a new event</p>
       </div>
 
-      <form className="space-y-8">
+      <form className="space-y-8" onSubmit={handleSubmit}>
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Name <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <input type="text" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
+          <input name="name" type="text" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
         </div>
 
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Description <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <textarea required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200 min-h-[120px]"/>
+          <textarea name="description" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200 min-h-[120px]"/>
         </div>
 
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
-          <label className="block mb-4 text-gray-900 dark:text-gray-100 font-medium">Image</label>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <button type="button" onClick={() => setImageType('url')} className={`px-4 py-2 rounded-lg transition-all duration-200 ${imageType === 'url' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
-                URL
-              </button>
-              <button type="button" onClick={() => setImageType('file')} className={`px-4 py-2 rounded-lg transition-all duration-200 ${imageType === 'file' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
-                Upload File
-              </button>
-            </div>
-            {imageType === 'url' ? (
-              <input type="url" placeholder="Enter image URL" className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
-            ) : (
-              <input type="file" accept="image/*" className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-200 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-300 dark:hover:file:bg-gray-600 file:cursor-pointer cursor-pointer"/>
-            )}
-          </div>
+          <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">Image URL</label>
+          <input name="image" type="url" placeholder="Enter image URL" className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
         </div>
 
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Type <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <select required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200">
+          <select name="type" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200">
             <option value="compulsory">Compulsory</option>
             <option value="non-compulsory">Non-compulsory</option>
           </select>
@@ -81,7 +106,12 @@ export default function Add() {
           <div className="space-y-3">
             {groups.map((group, index) => (
               <div key={index} className="flex gap-2">
-                <input type="text" value={group} onChange={(e) => updateGroup(index, e.target.value)} className="flex-1 px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200" required/>
+                <select value={group} onChange={(e) => updateGroup(index, e.target.value)} className="flex-1 px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200" required>
+                  <option value="">Select a group</option>
+                  {availableGroups.map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
                 {groups.length > 1 && (
                   <button type="button" onClick={() => removeGroup(index)} className="p-3 text-red-500 dark:text-red-400 hover:text-red-400 dark:hover:text-red-300 transition-colors">
                     <XMarkIcon className="w-5 h-5" />
@@ -101,9 +131,9 @@ export default function Add() {
             Time Interval <span className="text-red-500 dark:text-red-400">*</span>
           </label>
           <div className="flex gap-4">
-            <input type="datetime-local" required className="flex-1 px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
+            <input name="startTime" type="datetime-local" required className="flex-1 px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
             <span className="flex items-center text-gray-600 dark:text-gray-400">to</span>
-            <input type="datetime-local" required className="flex-1 px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
+            <input name="endTime" type="datetime-local" required className="flex-1 px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
           </div>
         </div>
 
@@ -111,14 +141,19 @@ export default function Add() {
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Location <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <input type="text" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
+          <select name="location" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200">
+            <option value="">Select a location</option>
+            {locations.map((location) => (
+              <option key={location.id} value={location.id}>{location.name}</option>
+            ))}
+          </select>
         </div>
 
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Maximum Spaces <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <input type="number" min="1" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
+          <input name="maxSpaces" type="number" min="1" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
         </div>
 
         <div className="flex gap-4 pt-4">
