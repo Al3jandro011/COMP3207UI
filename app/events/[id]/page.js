@@ -75,11 +75,50 @@ export default function EventPage({ params }) {
   }
 
   return (
+    
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="relative w-full h-[400px] rounded-2xl overflow-hidden">
         <Image src={event.imageUrl || '/default-event-image.jpg'} alt={event.name} fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
       </div>
+
+      <div className="space-x-4 flex items-center">
+  <button
+    onClick={() => alert("Ticket functionality coming soon!")}
+    className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-green-500/50 focus:outline-none"
+  >
+    Get Ticket
+  </button>
+
+  <button
+    onClick={handleTimetableToggle}
+    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+      isInTimetable
+        ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500"
+        : "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400"
+    } text-white focus:ring-2 focus:ring-cyan-500/50 focus:outline-none`}
+  >
+    {isInTimetable ? "Remove from Timetable" : "Add to Timetable"}
+  </button>
+
+  {isCreator && (
+    <>
+      <a
+        href={`/events/${resolvedParams.id}/edit`}
+        className="inline-block px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-gray-500/50 focus:outline-none"
+      >
+        Edit
+      </a>
+      <button
+        onClick={handleDelete}
+        className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-red-500/50 focus:outline-none"
+      >
+        Delete
+      </button>
+    </>
+  )}
+</div>
+
       
       <div className="space-y-8">
         <div className="flex justify-between items-start">
