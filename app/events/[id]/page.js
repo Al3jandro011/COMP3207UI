@@ -82,7 +82,7 @@ export default function EventPage({ params }) {
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
       </div>
 
-      <div className="space-x-4 flex items-center">
+      {/* <div className="space-x-4 flex items-center">
   <button
     onClick={() => alert("Ticket functionality coming soon!")}
     className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-green-500/50 focus:outline-none"
@@ -117,7 +117,7 @@ export default function EventPage({ params }) {
       </button>
     </>
   )}
-</div>
+</div> */}
 
       
       <div className="space-y-8">
