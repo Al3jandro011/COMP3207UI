@@ -92,13 +92,7 @@ export default function Timetable() {
       <div className="space-y-8">
         <div className="bg-white dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">Compulsory Events:</label>
-          <Select
-            value={compulsory}
-            onChange={setCompulsory}
-            options={compulsoryOptions}
-            className="w-48"
-            styles={customSelectStyles}
-          />
+          <Select value={compulsory} onChange={setCompulsory} options={compulsoryOptions} className="w-48" styles={customSelectStyles} />
         </div>
 
         <div className="bg-white dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
@@ -115,19 +109,14 @@ export default function Timetable() {
           </div>
 
           <div className="relative">
-            <button onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)} className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none flex items-center space-x-2">
-              <PlusIcon className="w-4 h-4" />
-              <span>Add Group</span>
-            </button>
+            <button onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)} className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none flex items-center space-x-2"><PlusIcon className="w-4 h-4" /><span>Add Group</span></button>
             
             {isTagDropdownOpen && (
               <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700/50">
                 {availableTags
                   .filter(tag => !selectedTags.find(t => t.value === tag.value))
                   .map(tag => (
-                    <div key={tag.value} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-700 dark:text-gray-300 first:rounded-t-xl last:rounded-b-xl transition-colors duration-150" onClick={() => addTag(tag)}>
-                      {tag.label}
-                    </div>
+                    <div key={tag.value} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-700 dark:text-gray-300 first:rounded-t-xl last:rounded-b-xl transition-colors duration-150" onClick={() => addTag(tag)}>{tag.label}</div>
                   ))}
               </div>
             )}
@@ -135,9 +124,7 @@ export default function Timetable() {
         </div>
 
         <div className="bg-white dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
-          <div className="text-gray-600 dark:text-gray-400 text-center py-8">
-            No events to show
-          </div>
+          <div className="text-gray-600 dark:text-gray-400 text-center py-8">No events to show</div>
         </div>
       </div>
     </div>

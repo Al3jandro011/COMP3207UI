@@ -77,12 +77,7 @@ export default function EventPage({ params }) {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="relative w-full h-[400px] rounded-2xl overflow-hidden">
-        <Image
-          src={event.imageUrl || '/default-event-image.jpg'}
-          alt={event.name}
-          fill
-          className="object-cover"
-        />
+        <Image src={event.imageUrl || '/default-event-image.jpg'} alt={event.name} fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
       </div>
       
@@ -90,34 +85,16 @@ export default function EventPage({ params }) {
         <div className="flex justify-between items-start">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">{event.name}</h1>
           <div className="space-x-4">
-            <button
-              onClick={handleTimetableToggle}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 
-                ${isInTimetable 
-                  ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500' 
-                  : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'
-                } text-white focus:ring-2 focus:ring-cyan-500/50 focus:outline-none`}
-            >
+            <button onClick={handleTimetableToggle} className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${isInTimetable ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500' : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'} text-white focus:ring-2 focus:ring-cyan-500/50 focus:outline-none`}>
               {isInTimetable ? 'Remove from Timetable' : 'Add to Timetable'}
             </button>
             
             {isCreator && (
               <>
-                <a
-                  href={`/events/${resolvedParams.id}/edit`}
-                  className="inline-block px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 
-                           text-gray-900 dark:text-white rounded-lg font-medium transition-all duration-200
-                           focus:ring-2 focus:ring-gray-500/50 focus:outline-none"
-                >
+                <a href={`/events/${resolvedParams.id}/edit`} className="inline-block px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-gray-500/50 focus:outline-none">
                   Edit
                 </a>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 
-                           hover:from-red-400 hover:to-red-500 text-white rounded-lg 
-                           font-medium transition-all duration-200
-                           focus:ring-2 focus:ring-red-500/50 focus:outline-none"
-                >
+                <button onClick={handleDelete} className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-red-500/50 focus:outline-none">
                   Delete
                 </button>
               </>
@@ -143,11 +120,7 @@ export default function EventPage({ params }) {
           <p className="font-semibold text-gray-900 dark:text-gray-100">Groups</p>
           <div className="flex flex-wrap gap-2">
             {event.groups.map((group, index) => (
-              <span 
-                key={index}
-                className="px-3 py-1 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 dark:from-cyan-500/10 dark:to-blue-500/10 
-                         border border-cyan-500/20 rounded-full text-sm text-gray-700 dark:text-gray-300"
-              >
+              <span key={index} className="px-3 py-1 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 dark:from-cyan-500/10 dark:to-blue-500/10 border border-cyan-500/20 rounded-full text-sm text-gray-700 dark:text-gray-300">
                 {group}
               </span>
             ))}
