@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CalendarIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { getEvent } from '@/services/apiServices';
+import Link from 'next/link';
 
 export default function EventPage({ params }) {
   const [event, setEvent] = useState(null);
@@ -14,30 +15,30 @@ export default function EventPage({ params }) {
   const resolvedParams = React.use(params);
 
   useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        const data = {
-          event_id: resolvedParams.id,
-          user_id: "1"
-        };
+    // Actual API call:
+    // const fetchEvent = async () => {
+    //   try {
+    //     const data = {
+    //       event_id: resolvedParams.id,
+    //       user_id: "1"
+    //     };
         
-        const response = await getEvent(data);
-        const eventData = response.data;
+    //     const response = await getEvent(data);
+    //     const eventData = response.data;
         
-        setEvent(eventData);
-        setIsCreator(eventData.creatorId === "1");
-        setIsInTimetable(false);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching event:', error);
-        setLoading(false);
-      }
-    };
+    //     setEvent(eventData);
+    //     setIsCreator(eventData.creatorId === "1");
+    //     setIsInTimetable(false);
+    //     setLoading(false);
+    //   } catch (error) {
+    //     console.error('Error fetching event:', error);
+    //     setLoading(false);
+    //   }
+    // };
 
-    fetchEvent();
+    // fetchEvent();
 
     // Original dummy data code:
-    /*
     const fetchEvent = async () => {
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -66,7 +67,7 @@ export default function EventPage({ params }) {
     };
 
     fetchEvent();
-    */
+    
   }, [resolvedParams.id]);
 
   const handleTimetableToggle = async () => {
@@ -99,25 +100,25 @@ export default function EventPage({ params }) {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <div className="relative w-full h-[400px] rounded-2xl overflow-hidden">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
+      <div className="relative w-full h-[250px] sm:h-[400px] rounded-2xl overflow-hidden">
         <Image src={event.imageUrl || '/default-event-image.jpg'} alt={event.name} fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
       </div>
       
-      <div className="space-y-8">
-        <div className="flex justify-between items-start">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">{event.name}</h1>
-          <div className="space-x-4">
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100">{event.name}</h1>
+          <div className="flex flex-wrap gap-2 sm:gap-4">
             <button onClick={handleTimetableToggle} className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${isInTimetable ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500' : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'} text-white focus:ring-2 focus:ring-cyan-500/50 focus:outline-none`}>
-              {isInTimetable ? 'Remove from Timetable' : 'Add to Timetable'}
+              {isInTimetable ? 'Remove' : 'Add to Timetable'}
             </button>
             
             {isCreator && (
               <>
-                <a href={`/events/${resolvedParams.id}/edit`} className="inline-block px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-gray-500/50 focus:outline-none">
+                <Link href={`/events/${resolvedParams.id}/edit`} className="inline-block px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-gray-500/50 focus:outline-none">
                   Edit
-                </a>
+                </Link>
                 <button onClick={handleDelete} className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-red-500/50 focus:outline-none">
                   Delete
                 </button>

@@ -13,8 +13,8 @@ export default function Add() {
   useEffect(() => {
     getLocationsAndGroups()
     .then((res) => {
-      setLocations(res.data.locations || []);
-      setAvailableGroups(res.data.groups || []);
+      setLocations(/*res.data.locations ||*/ ["46/3020", "46/3021", "46/3022"]);
+      setAvailableGroups(/*res.data.groups ||*/ ["COMP3200", "COMP3210", "COMP3220"]);
     })
     .catch((err) => {
       console.log(err);
@@ -48,7 +48,8 @@ export default function Add() {
         location_id: e.target.location.value,
         start_date: e.target.startTime.value,
         end_date: e.target.endTime.value,
-        max_spaces: e.target.maxSpaces.value,
+        max_tick: e.target.maxSpaces.value,
+        max_tick_pp: 1,
         tags: groups,
         img_url: e.target.image.value,
       };
@@ -58,7 +59,7 @@ export default function Add() {
       window.location.href = '/events';
     } catch (err) {
       console.error(err);
-      alert('Failed to create event. Please try again.');
+      alert(err.response.data.error);
     }
   };
 
@@ -69,7 +70,7 @@ export default function Add() {
         <p className="text-gray-600 dark:text-gray-400">Create a new event</p>
       </div>
 
-      <form className="space-y-8" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Name <span className="text-red-500 dark:text-red-400">*</span>
@@ -107,9 +108,9 @@ export default function Add() {
             {groups.map((group, index) => (
               <div key={index} className="flex gap-2">
                 <select value={group} onChange={(e) => updateGroup(index, e.target.value)} className="flex-1 px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200" required>
-                  <option value="">Select a group</option>
+                  <option key="default" value="">Select a group</option>
                   {availableGroups.map((g) => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
+                    <option key={g} value={g}>{g}</option>
                   ))}
                 </select>
                 {groups.length > 1 && (
@@ -144,7 +145,7 @@ export default function Add() {
           <select name="location" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200">
             <option value="">Select a location</option>
             {locations.map((location) => (
-              <option key={location.id} value={location.id}>{location.name}</option>
+              <option key={location} value={location}>{location}</option>
             ))}
           </select>
         </div>
