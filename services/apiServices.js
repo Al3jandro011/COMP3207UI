@@ -1,27 +1,20 @@
 import axios from "axios";
 
-const rootUrl = "evecs.azurewebsites.net";
+const rootUrl = "https://evecs.azurewebsites.net/api";
 
 export const statusCheck = () => {
 	return axios.get(`${rootUrl}/`);
 };
 
-// export const createTicket = () => {
-// 	return axios.get(`${rootUrl}/create_ticket`);
-// };
+export const createTicket = (data) => {
+	return axios.post(`${rootUrl}/create_ticket?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
+};
 
-// export const getTicket = () => {
-// 	return axios.get(`${rootUrl}/get_ticket`);
-// };
+export const getTicket = (data) => {
+	return axios.get(`${rootUrl}/get_ticket?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
+};
 
-// export const getTickets = () => {
-// 	return axios.get(`${rootUrl}/get_tickets`);
-// };
+export const deleteTicket = (data) => {
+	return axios.get(`${rootUrl}/delete_ticket?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
+};
 
-// export const updateTicket = () => {
-// 	return axios.get(`${rootUrl}/update_ticket`);
-// };
-
-// export const deleteTicket = () => {
-// 	return axios.get(`${rootUrl}/delete_ticket`);
-// };
