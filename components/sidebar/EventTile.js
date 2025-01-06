@@ -24,15 +24,21 @@ export default function EventTile({
                 });
                 const maxTickets = eventResponse.data.max_tick;
 
-                // Get current ticket count for this event
-                const ticketResponse = await getTicket({
-                    event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354"
-                });
-                const currentTickets = ticketResponse.data.ticket_count || 0;
-
-                // Calculate tickets left
-                const remaining = maxTickets - currentTickets;
-                setTicketsLeft(remaining);
+                try {
+                    // Get current ticket count for this event
+                    const ticketResponse = await getTicket({
+                        event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354"
+                    });
+                    const currentTickets = ticketResponse.data.ticket_count || 0;
+                    setTicketsLeft(maxTickets - currentTickets);
+                } catch (ticketError) {
+                    // If no tickets found, treat as 0 tickets
+                    if (ticketError.response?.status === 404) {
+                        setTicketsLeft(maxTickets);  // All tickets available
+                    } else {
+                        throw ticketError;  // Re-throw other errors
+                    }
+                }
             } catch (error) {
                 console.error('Error fetching ticket information:', error);
                 setTicketsLeft(null);

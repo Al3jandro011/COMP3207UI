@@ -107,15 +107,23 @@ export default function EventPage({ params }) {
             console.log('Event response:', eventResponse.data);
             const maxTickets = eventResponse.data.max_tick;
 
-            // Then get ticket count
-            console.log('Fetching tickets for event:', resolvedParams.id);
-            const ticketResponse = await getTicket({
-                event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354"
-            });
-            console.log('Ticket response:', ticketResponse.data);
-            const currentTickets = ticketResponse.data.ticket_count || 0;
-
-            setTicketsLeft(maxTickets - currentTickets);
+            try {
+                // Then get ticket count
+                console.log('Fetching tickets for event:', resolvedParams.id);
+                const ticketResponse = await getTicket({
+                    event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354"
+                });
+                console.log('Ticket response:', ticketResponse.data);
+                const currentTickets = ticketResponse.data.ticket_count || 0;
+                setTicketsLeft(maxTickets - currentTickets);
+            } catch (ticketError) {
+                // If no tickets found, treat as 0 tickets
+                if (ticketError.response?.status === 404) {
+                    setTicketsLeft(maxTickets);  // All tickets available
+                } else {
+                    throw ticketError;  // Re-throw other errors
+                }
+            }
         } catch (error) {
             console.error('Error details:', {
                 message: error.message,
