@@ -1,14 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { makeCalendar } from '@/services/apiServices';
+import { useRouter } from 'next/navigation';
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false
 });
 
 export default function Timetable() {
+  const router = useRouter();
+
   // Set default dates (today and 1 month from today)
   const today = new Date();
   const nextMonth = new Date(today);
@@ -22,10 +25,73 @@ export default function Timetable() {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isCalendarLinked, setIsCalendarLinked] = useState(false);
+  const [isGoogleApiReady, setIsGoogleApiReady] = useState(false);
+  const [isOutlookLinked, setIsOutlookLinked] = useState(false);
+  const [timetableStatus, setTimetableStatus] = useState({});
 
   // Load events on initial render
   useEffect(() => {
     searchEvents();
+  }, []);
+
+  // Add this useEffect near the top of your component
+  useEffect(() => {
+    const loadGoogleApi = () => {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://apis.google.com/js/api.js';
+        script.onload = () => {
+          console.log('Google API script loaded');
+          resolve();
+        };
+        script.onerror = (error) => {
+          console.error('Error loading Google API script:', error);
+          reject(error);
+        };
+        document.body.appendChild(script);
+      });
+    };
+
+    const initializeGoogleApi = async () => {
+      try {
+        await new Promise((resolve) => window.gapi.load('client:auth2', resolve));
+        
+        await window.gapi.client.init({
+          clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+          scope: 'https://www.googleapis.com/auth/calendar',
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']
+        });
+
+        console.log('Google API initialized successfully');
+        setIsGoogleApiReady(true);
+      } catch (error) {
+        console.error('Error initializing Google API:', error);
+        throw error;
+      }
+    };
+
+    const initialize = async () => {
+      try {
+        if (!window.gapi) {
+          await loadGoogleApi();
+        }
+        await initializeGoogleApi();
+      } catch (error) {
+        console.error('Failed to initialize Google API:', error);
+      }
+    };
+
+    initialize();
+
+    return () => {
+      if (window.gapi?.auth2) {
+        const auth2 = window.gapi.auth2.getAuthInstance();
+        if (auth2) {
+          auth2.signOut();
+        }
+      }
+    };
   }, []);
 
   const searchEvents = async () => {
@@ -123,6 +189,154 @@ export default function Timetable() {
     setIsTagDropdownOpen(false);
   };
 
+  const handleLinkCalendar = async () => {
+    try {
+      if (!window.gapi?.auth2) {
+        throw new Error('Google API not initialized properly');
+      }
+
+      const auth2 = window.gapi.auth2.getAuthInstance();
+      if (!auth2) {
+        throw new Error('Auth instance not found');
+      }
+
+      // Sign in with additional scope
+      const user = await auth2.signIn({
+        scope: 'https://www.googleapis.com/auth/calendar'
+      });
+
+      if (!user) {
+        throw new Error('Failed to sign in user');
+      }
+
+      const authResponse = user.getAuthResponse();
+      if (!authResponse) {
+        throw new Error('No auth response received');
+      }
+
+      // Test the calendar access
+      try {
+        const response = await window.gapi.client.calendar.calendarList.list();
+        console.log('Calendar access successful:', response.result);
+        setIsCalendarLinked(true);
+        console.log('Calendar successfully linked!');
+      } catch (calendarError) {
+        console.error('Calendar access failed:', calendarError);
+        throw new Error('Failed to access calendar');
+      }
+    } catch (error) {
+      console.error('Error linking calendar:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      setIsCalendarLinked(false);
+      // Show error to user
+      alert(error.message || 'Failed to link Google Calendar. Please try again.');
+    }
+  };
+
+  const handleLinkOutlook = () => {
+    try {
+      // Create the Outlook Web URL for calendar access
+      const outlookUrl = new URL('https://outlook.live.com/calendar/0/');
+      
+      // Open in a new window
+      const width = 800;
+      const height = 600;
+      const left = (window.innerWidth - width) / 2 + window.screenX;
+      const top = (window.innerHeight - height) / 2 + window.screenY;
+
+      const popup = window.open(
+        outlookUrl.toString(),
+        'OutlookCalendar',
+        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes`
+      );
+
+      if (popup) {
+        setIsOutlookLinked(true);
+        // Store the linked status in localStorage
+        localStorage.setItem('outlookLinked', 'true');
+        console.log('Outlook calendar linked successfully');
+      } else {
+        throw new Error('Popup was blocked. Please allow popups for this site.');
+      }
+    } catch (error) {
+      console.error('Error linking Outlook:', error.message);
+      setIsOutlookLinked(false);
+      localStorage.removeItem('outlookLinked');
+      alert(error.message || 'Failed to link Outlook. Please try again.');
+    }
+  };
+
+  const addEventToOutlook = (event) => {
+    if (!isOutlookLinked) {
+      console.log('Outlook calendar not linked');
+      return;
+    }
+
+    try {
+      const start = new Date(event.start_date || event.startTime);
+      const end = new Date(event.end_date || event.endTime);
+
+      const outlookUrl = new URL('https://outlook.live.com/calendar/0/deeplink/compose');
+      
+      const params = new URLSearchParams({
+        subject: event.name,
+        startdt: start.toISOString(),
+        enddt: end.toISOString(),
+        body: event.desc || '',
+        location: event.location || ''
+      });
+
+      outlookUrl.search = params.toString();
+
+      window.open(
+        outlookUrl.toString(),
+        'AddToOutlook',
+        `width=800,height=600,left=${(window.innerWidth - 800) / 2},top=${(window.innerHeight - 600) / 2},scrollbars=yes`
+      );
+    } catch (error) {
+      console.error('Error adding event to Outlook:', error);
+    }
+  };
+
+  const handleNavigate = (path) => {
+    router.push(path);
+  };
+
+  // Add this useEffect to restore the linked status
+  useEffect(() => {
+    const linkedStatus = localStorage.getItem('outlookLinked');
+    if (linkedStatus === 'true') {
+      setIsOutlookLinked(true);
+    }
+  }, []);
+
+  // Update the handleTimetableToggle function
+  const handleTimetableToggle = async (eventId) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Toggle status for this specific event
+      setTimetableStatus(prev => ({
+        ...prev,
+        [eventId]: !prev[eventId]
+      }));
+
+      // If adding to timetable and Outlook is linked, add to Outlook calendar
+      if (!timetableStatus[eventId] && isOutlookLinked) {
+        const event = events.find(e => e.event_id === eventId);
+        if (event) {
+          addEventToOutlook(event);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating timetable:', error);
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -145,25 +359,24 @@ export default function Timetable() {
             </div>
 
             <div>
-              <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">Date Range:</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Start Date</label>
+              <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">Time Interval</label>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="block mb-1 text-sm text-gray-600 dark:text-gray-400">From</label>
                   <input
-                    type="date"
-                    value={startDate.toISOString().split('T')[0]}
+                    type="datetime-local"
+                    value={startDate.toISOString().slice(0, 16)}
                     onChange={(e) => setStartDate(new Date(e.target.value))}
-                    className="bg-gray-800/50 border border-gray-700/50 text-gray-300 rounded-lg p-2.5 w-full focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">End Date</label>
+                <div className="flex-1">
+                  <label className="block mb-1 text-sm text-gray-600 dark:text-gray-400">To</label>
                   <input
-                    type="date"
-                    value={endDate.toISOString().split('T')[0]}
-                    min={startDate.toISOString().split('T')[0]}
+                    type="datetime-local"
+                    value={endDate.toISOString().slice(0, 16)}
                     onChange={(e) => setEndDate(new Date(e.target.value))}
-                    className="bg-gray-800/50 border border-gray-700/50 text-gray-300 rounded-lg p-2.5 w-full focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                   />
                 </div>
               </div>
@@ -186,10 +399,10 @@ export default function Timetable() {
             <div className="relative">
               <button 
                 onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)} 
-                className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none flex items-center space-x-2"
+                className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none flex items-center justify-center gap-2"
               >
                 <PlusIcon className="w-4 h-4" />
-                <span>Add Group</span>
+                <span className="whitespace-nowrap">Add Group</span>
               </button>
               
               {isTagDropdownOpen && (
@@ -214,13 +427,42 @@ export default function Timetable() {
         </div>
 
         {/* Search button */}
-        <div className="mt-6 flex justify-start">
+        <div className="mt-6 flex flex-col sm:flex-row gap-4">
           <button
             onClick={searchEvents}
             disabled={isLoading}
-            className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Searching...' : 'Search Events'}
+          </button>
+          
+          <button
+            onClick={handleLinkCalendar}
+            disabled={!isGoogleApiReady}
+            className={`w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none flex items-center justify-center gap-2 ${!isGoogleApiReady ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <LinkIcon className="w-4 h-4" />
+            <span className="whitespace-nowrap">
+              {!isGoogleApiReady 
+                ? 'Loading...' 
+                : isCalendarLinked 
+                  ? 'Linked to Google Calendar' 
+                  : 'Link to Google Calendar'
+              }
+            </span>
+          </button>
+          
+          <button
+            onClick={handleLinkOutlook}
+            className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:outline-none flex items-center justify-center gap-2"
+          >
+            <LinkIcon className="w-4 h-4" />
+            <span className="whitespace-nowrap">
+              {isOutlookLinked 
+                ? 'Linked to Outlook' 
+                : 'Link to Outlook'
+              }
+            </span>
           </button>
         </div>
       </div>
@@ -244,6 +486,16 @@ export default function Timetable() {
                 <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                   {new Date(event.start_date).toLocaleString()} - {new Date(event.end_date).toLocaleString()}
                 </div>
+                <button
+                  onClick={() => handleTimetableToggle(event.event_id)}
+                  className={`mt-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                    timetableStatus[event.event_id] 
+                      ? 'bg-red-500 hover:bg-red-600' 
+                      : 'bg-cyan-500 hover:bg-cyan-600'
+                  } text-white`}
+                >
+                  {timetableStatus[event.event_id] ? 'Remove from Timetable' : 'Add to Timetable'}
+                </button>
               </div>
             ))}
           </div>

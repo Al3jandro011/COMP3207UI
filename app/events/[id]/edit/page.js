@@ -191,22 +191,27 @@ export default function EditEvent({ params }) {
                     <label className="block mb-2 text-gray-100 font-medium">
                         Time Interval <span className="text-red-400">*</span>
                     </label>
-                    <div className="flex gap-4">
-                        <input 
-                            name="startTime"
-                            type="datetime-local"
-                            defaultValue={event.startTime}
-                            required
-                            className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
-                        />
-                        <span className="flex items-center text-gray-400">to</span>
-                        <input 
-                            name="endTime"
-                            type="datetime-local"
-                            defaultValue={event.endTime}
-                            required
-                            className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
-                        />
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1">
+                            <label className="block mb-1 text-sm text-gray-400">From</label>
+                            <input 
+                                name="startTime"
+                                type="datetime-local"
+                                defaultValue={event.startTime}
+                                required
+                                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block mb-1 text-sm text-gray-400">To</label>
+                            <input 
+                                name="endTime"
+                                type="datetime-local"
+                                defaultValue={event.endTime}
+                                required
+                                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+                            />
+                        </div>
                     </div>
                 </div>
 
