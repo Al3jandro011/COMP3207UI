@@ -1,13 +1,51 @@
+"use client";
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getEvent, getTicket } from '@/services/apiServices';
 
 export default function EventTile({ 
     imageUrl = '/default-event.jpg',
     title = 'Event Title',
     description = 'Event description goes here',
-    ticketsLeft = 100,
     id = '1'
 }) {
+    const [ticketsLeft, setTicketsLeft] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTicketInfo = async () => {
+            try {
+                // Get event details for max tickets
+                const eventResponse = await getEvent({
+                    event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354",
+                    user_id: "7a2d3700-bc9b-4e1b-9b1e-4042df891474"
+                });
+                const maxTickets = eventResponse.data.max_tick;
+
+                // Get current ticket count for this event
+                const ticketResponse = await getTicket({
+                    event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354"
+                });
+                const currentTickets = ticketResponse.data.ticket_count || 0;
+
+                // Calculate tickets left
+                const remaining = maxTickets - currentTickets;
+                setTicketsLeft(remaining);
+            } catch (error) {
+                console.error('Error fetching ticket information:', error);
+                setTicketsLeft(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchTicketInfo();
+        }
+    }, [id]);
+
     return (
         <div className="group rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-lg 
                       hover:shadow-cyan-500/10 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 
@@ -36,7 +74,9 @@ export default function EventTile({
                                   d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                         </svg>
                         <span className="text-sm">
-                            {ticketsLeft} available
+                            {loading ? 'Loading...' : 
+                             ticketsLeft === null ? 'Unavailable' :
+                             `${ticketsLeft} available`}
                         </span>
                     </div>
                     <Link href={`/events/${id}`}>

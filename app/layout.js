@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "../components/sidebar/Sidebar";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,10 +27,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900 text-gray-100`}>
-        <Sidebar />
-        <main className="lg:ml-72 min-h-screen pt-[64px] lg:pt-0">
-          {children}
-        </main>
+        <ErrorBoundary>
+          <Sidebar />
+          <main className="lg:ml-72 min-h-screen pt-[64px] lg:pt-0">
+            {children}
+          </main>
+        </ErrorBoundary>
       </body>
     </html>
   );

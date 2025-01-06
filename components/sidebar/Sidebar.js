@@ -1,15 +1,13 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { HomeIcon, CalendarIcon, BuildingOfficeIcon, ChatBubbleLeftIcon, UserIcon, SunIcon, MoonIcon, XMarkIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
-import { getAiResponse } from '@/services/apiServices';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { HomeIcon, CalendarIcon, BuildingOfficeIcon, UserIcon, SunIcon, MoonIcon, XMarkIcon } from '@heroicons/react/24/outline';
+
 export default function Sidebar() {
 	const pathname = usePathname();
-	const [isChatOpen, setIsChatOpen] = useState(false);
-	const [messages, setMessages] = useState([]);
-	const [inputMessage, setInputMessage] = useState('');
+	const router = useRouter();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	const linkClass = (path) => {
@@ -21,37 +19,13 @@ export default function Sidebar() {
 		}`;
 	};
 
-	const handleSendMessage = async () => {
-		if (!inputMessage.trim()) return;
+	const handleNavigation = (path) => {
+		router.push(path);
+	};
 
-		const newUserMessage = {
-			text: inputMessage,
-			isUser: true
-		};
-		setMessages(prev => [...prev, newUserMessage]);
-		setInputMessage('');
-
-		try {
-			const response = await getAiResponse({
-				message: inputMessage
-			});
-
-			if (response && response.message) {
-				const aiResponse = {
-					text: response.message,
-					isUser: false
-				};
-				setMessages(prev => [...prev, aiResponse]);
-			} else {
-				throw new Error('Invalid response from AI');
-			}
-		} catch (error) {
-			console.error('Error getting AI response:', error);
-			const errorResponse = {
-				text: "Sorry, I'm having trouble responding right now. Please try again later.",
-				isUser: false
-			};
-			setMessages(prev => [...prev, errorResponse]);
+	const handleLinkClick = () => {
+		if (window.innerWidth < 1024) { // lg breakpoint is 1024px
+			setIsMobileMenuOpen(false);
 		}
 	};
 
@@ -91,102 +65,56 @@ export default function Sidebar() {
 					</Link>
 				</div>
 				
-				{isChatOpen ? (
-					<div className="flex flex-col h-[calc(100vh-88px)]">
-						<div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800/50">
-							<h2 className="text-lg font-medium text-gray-900 dark:text-white">Assistant</h2>
-							<button 
-								onClick={() => setIsChatOpen(false)}
-								className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800"
-							>
-								<XMarkIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-							</button>
-						</div>
-						
-						<div className="flex-1 overflow-y-auto p-4">
-							{messages.map((message, index) => (
-								<div key={index} className="mb-4">
-									<div className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
-										<div className={`max-w-[80%] p-3 rounded-lg ${
-											message.isUser 
-												? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' 
-												: 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-										}`}>
-											{message.text}
-										</div>
-									</div>
-								</div>
-							))}
-						</div>
-						
-						<div className="p-4 border-t border-gray-200 dark:border-gray-800/50">
-							<div className="flex gap-2">
-								<input 
-									type="text"
-									value={inputMessage}
-									onChange={(e) => setInputMessage(e.target.value)}
-									onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-									placeholder="Type your message..."
-									className="flex-1 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 
-											 text-gray-900 dark:text-white border border-gray-200 
-											 dark:border-gray-700 focus:outline-none focus:ring-2 
-											 focus:ring-cyan-500"
-								/>
-								<button 
-									onClick={handleSendMessage}
-									className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white"
-								>
-									<PaperAirplaneIcon className="w-5 h-5" />
-								</button>
-							</div>
-						</div>
+				<nav className="px-3 py-6">
+					<div className="px-4 mb-4">
+						<span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+							Main Menu
+						</span>
 					</div>
-				) : (
-					<>
-						<nav className="px-3 py-6">
-							<div className="px-4 mb-4">
-								<span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Main Menu
-								</span>
-							</div>
-							<ul className="space-y-1.5">
-								<li>
-									<Link href="/" className={linkClass("/")}>
-										<HomeIcon className="w-5 h-5" />
-										<span>Dashboard</span>
-									</Link>
-								</li>
-								<li>
-									<Link href="/timetable" className={linkClass("/timetable")}>
-										<CalendarIcon className="w-5 h-5" />
-										<span>Timetable</span>
-									</Link>
-								</li>
-								<li>
-									<Link href="/events" className={linkClass("/events")}>
-										<BuildingOfficeIcon className="w-5 h-5" />
-										<span>Events</span>
-									</Link>
-								</li>
-							</ul>
-						</nav>
-
-						<div className="absolute bottom-0 w-full border-t border-gray-200 dark:border-gray-800/50">
-							<button 
-								onClick={() => setIsChatOpen(true)}
-								className={`w-full ${linkClass("/assistant")} hover:bg-gray-800`}
+					<ul className="space-y-1.5">
+						<li>
+							<Link 
+								href="/" 
+								className={linkClass("/")}
+								onClick={handleLinkClick}
 							>
-								<ChatBubbleLeftIcon className="w-5 h-5" />
-								<span>Assistant</span>
-							</button>
-
-							<Link href="/account" className={`${linkClass("/account")} hover:bg-gray-800`}>
-								<UserIcon className="w-5 h-5" />
-								<span>Account</span>
+								<HomeIcon className="w-5 h-5" />
+								<span>Dashboard</span>
 							</Link>
-						</div>
-					</>
-				)}
+						</li>
+						<li>
+							<Link 
+								href="/timetable" 
+								className={linkClass("/timetable")}
+								onClick={handleLinkClick}
+							>
+								<CalendarIcon className="w-5 h-5" />
+								<span>Timetable</span>
+							</Link>
+						</li>
+						<li>
+							<Link 
+								href="/events" 
+								className={linkClass("/events")}
+								onClick={handleLinkClick}
+							>
+								<BuildingOfficeIcon className="w-5 h-5" />
+								<span>Events</span>
+							</Link>
+						</li>
+					</ul>
+				</nav>
+
+				<div className="absolute bottom-0 w-full border-t border-gray-200 dark:border-gray-800/50">
+					<Link 
+						href="/account" 
+						className={`${linkClass("/account")} hover:bg-gray-800`}
+						onClick={handleLinkClick}
+					>
+						<UserIcon className="w-5 h-5" />
+						<span>Account</span>
+					</Link>
+				</div>
 			</aside>
 
 			{isMobileMenuOpen && (
