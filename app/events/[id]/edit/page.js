@@ -95,7 +95,7 @@ export default function EditEvent({ params }) {
                 <p className="text-gray-400">Update event details</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="bg-gray-800/50 p-4 sm:p-6 rounded-xl border border-gray-700/50">
                     <label className="block mb-2 text-gray-100 font-medium">
                         Name <span className="text-red-400">*</span>

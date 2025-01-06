@@ -14,12 +14,12 @@ export default function Events() {
     const today = new Date();
     const data = {
       start_date: today.toISOString(),
-      end_date: new Date(8640000000000000).toISOString()
+      end_date: new Date(today.getFullYear() + 100, today.getMonth(), today.getDate()).toISOString()
     };
 
     makeCalendar(data)
       .then((res) => {
-        setEvents(res.data || []);
+        setEvents(Array.isArray(res.data) ? res.data : []);
       })
       .catch((err) => {
         console.error(err);
@@ -45,6 +45,10 @@ export default function Events() {
         {error ? (
           <div className="text-center py-12 text-gray-600 dark:text-gray-400">
             No events found. Please try again later.
+          </div>
+        ) : events.length === 0 ? (
+          <div className="text-center py-12 text-gray-600 dark:text-gray-400">
+            No events available at this time.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
