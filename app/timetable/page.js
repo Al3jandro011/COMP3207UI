@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { PlusIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { makeCalendar } from '@/services/apiServices';
 import { useRouter } from 'next/navigation';
+import EventTile from '@/components/EventTile';
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false
@@ -435,7 +436,7 @@ export default function Timetable() {
             {isLoading ? 'Searching...' : 'Search Events'}
           </button>
           
-          <button
+          {/* <button
             onClick={handleLinkCalendar}
             disabled={!isGoogleApiReady}
             className={`w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none flex items-center justify-center gap-2 ${!isGoogleApiReady ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -449,7 +450,7 @@ export default function Timetable() {
                   : 'Link to Google Calendar'
               }
             </span>
-          </button>
+          </button> */}
           
           <button
             onClick={handleLinkOutlook}
@@ -474,28 +475,16 @@ export default function Timetable() {
         ) : events.length === 0 ? (
           <div className="text-gray-600 dark:text-gray-400 text-center py-8">No events to show</div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <div 
-                key={event.event_id} 
-                className="p-4 border border-gray-200 dark:border-gray-700/50 rounded-lg"
-              >
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{event.name}</h3>
-                <p className="text-gray-600 dark:text-gray-400">{event.desc}</p>
-                <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(event.start_date).toLocaleString()} - {new Date(event.end_date).toLocaleString()}
-                </div>
-                <button
-                  onClick={() => handleTimetableToggle(event.event_id)}
-                  className={`mt-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    timetableStatus[event.event_id] 
-                      ? 'bg-red-500 hover:bg-red-600' 
-                      : 'bg-cyan-500 hover:bg-cyan-600'
-                  } text-white`}
-                >
-                  {timetableStatus[event.event_id] ? 'Remove from Timetable' : 'Add to Timetable'}
-                </button>
-              </div>
+              <EventTile 
+                key={event.event_id}
+                id={event.event_id}
+                imageUrl={event.imageUrl || "/example.jpg"}
+                title={event.name}
+                description={event.desc}
+                onTimetableToggle={(eventId) => handleTimetableToggle(eventId)}
+              />
             ))}
           </div>
         )}
