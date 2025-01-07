@@ -21,6 +21,7 @@ export default function Add() {
     endTime: '',
     maxSpaces: ''
   });
+  const [formKey, setFormKey] = useState(Date.now());
 
   useEffect(() => {
     getLocationsAndGroups()
@@ -78,33 +79,83 @@ export default function Add() {
   const handleAssistantSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await getAiResponse({ message: prompt });
-      if (response && response.message) {
+      console.log('Sending prompt:', prompt);
+      const response = await getAiResponse({ text: prompt });
+      console.log('Raw API response:', response);
+      
+      if (response && response.data.result) {
         try {
-          const eventData = JSON.parse(response.message);
-          setFormData({
-            name: eventData.name || '',
-            description: eventData.description || '',
-            image: eventData.image || '',
-            type: eventData.type || 'non-compulsory',
-            location: eventData.location || '',
-            startTime: eventData.startTime || '',
-            endTime: eventData.endTime || '',
-            maxSpaces: eventData.maxSpaces || ''
-          });
+          console.log('Response message:', response.data.result);
           
-          const form = document.forms[0];
-          Object.keys(eventData).forEach(key => {
-            if (form[key]) {
-              form[key].value = eventData[key] || '';
+          const jsonMatch = response.data.result.match(/\{[\s\S]*\}/);
+          console.log('JSON match:', jsonMatch);
+          
+          if (!jsonMatch) {
+            throw new Error('No JSON object found in response');
+          }
+          
+          const jsonString = jsonMatch[0];
+          const eventData = JSON.parse(jsonString);
+          
+          // Validate location
+          const locationExists = locations.includes(eventData.room_id);
+          if (!locationExists) {
+            alert(`Location "${eventData.room_id}" is not available. Please select from: ${locations.join(', ')}`);
+            eventData.room_id = ''; // Clear invalid location
+          }
+
+          // Validate groups
+          let validGroups = [];
+          let invalidGroups = [];
+          if (eventData.groups && Array.isArray(eventData.groups)) {
+            eventData.groups.forEach(group => {
+              if (availableGroups.includes(group)) {
+                validGroups.push(group);
+              } else {
+                invalidGroups.push(group);
+              }
+            });
+
+            if (invalidGroups.length > 0) {
+              alert(`The following groups are not available: ${invalidGroups.join(', ')}\nPlease select from: ${availableGroups.join(', ')}`);
             }
-          });
+          }
+
+          const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            return date.toISOString().slice(0, 16);
+          };
+
+          const newFormData = {
+            name: eventData.name || '',
+            description: eventData.desc || '',
+            image: eventData.img_url || '',
+            type: 'non-compulsory',
+            location: eventData.room_id || '',
+            startTime: formatDate(eventData.start_date) || '',
+            endTime: formatDate(eventData.end_date) || '',
+            maxSpaces: eventData.max_tick?.toString() || ''
+          };
+
+          setFormData(newFormData);
+
+          // Only set valid groups
+          if (validGroups.length > 0) {
+            setGroups(validGroups);
+          } else {
+            setGroups(['']); // Reset to empty group selection
+          }
+
+          setFormKey(Date.now());
+
         } catch (error) {
           console.error('Error parsing AI response:', error);
+          alert('Failed to parse the AI response. Please try again.');
         }
       }
     } catch (error) {
       console.error('Error getting AI response:', error);
+      alert('Failed to get AI response. Please try again.');
     }
     setIsAssistantOpen(false);
   };
@@ -149,24 +200,41 @@ export default function Add() {
         </div>
       )}
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form key={formKey} id="eventForm" className="space-y-4" onSubmit={handleSubmit}>
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Name <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <input name="name" type="text" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
+          <input 
+            name="name" 
+            type="text" 
+            required 
+            defaultValue={formData.name}
+            className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+          />
         </div>
 
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Description <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <textarea name="description" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200 min-h-[120px]"/>
+          <textarea 
+            name="description" 
+            required 
+            defaultValue={formData.description}
+            className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200 min-h-[120px]"
+          />
         </div>
 
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">Image URL</label>
-          <input name="image" type="url" placeholder="Enter image URL" className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
+          <input 
+            name="image" 
+            type="url" 
+            placeholder="Enter image URL" 
+            defaultValue={formData.image}
+            className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+          />
         </div>
 
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
@@ -217,6 +285,7 @@ export default function Add() {
                 name="startTime" 
                 type="datetime-local" 
                 required 
+                defaultValue={formData.startTime}
                 className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
               />
             </div>
@@ -226,6 +295,7 @@ export default function Add() {
                 name="endTime" 
                 type="datetime-local" 
                 required 
+                defaultValue={formData.endTime}
                 className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
               />
             </div>
@@ -236,7 +306,12 @@ export default function Add() {
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Location <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <select name="location" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200">
+          <select 
+            name="location" 
+            required 
+            defaultValue={formData.location}
+            className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+          >
             <option value="">Select a location</option>
             {locations.map((location) => (
               <option key={location} value={location}>{location}</option>
@@ -248,7 +323,14 @@ export default function Add() {
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Maximum Spaces <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <input name="maxSpaces" type="number" min="1" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"/>
+          <input 
+            name="maxSpaces" 
+            type="number" 
+            min="1" 
+            required 
+            defaultValue={formData.maxSpaces}
+            className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+          />
         </div>
 
         <div className="flex gap-4 pt-4">

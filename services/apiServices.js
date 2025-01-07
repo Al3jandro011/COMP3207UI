@@ -46,7 +46,11 @@ export const getAiResponse = (data) => {
 };
 
 export const createTicket = (data) => {
-	return api.post(`/create_ticket?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
+	return api.post(`/create_ticket?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, {
+		user_id: data.user_id,
+		event_id: data.event_id,
+		email: data.email
+	});
 };
 
 export const getTicket = (data) => {
