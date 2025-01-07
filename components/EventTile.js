@@ -17,7 +17,6 @@ export default function EventTile({
     useEffect(() => {
         const fetchTicketInfo = async () => {
             try {
-                // Get event details for max tickets
                 const eventResponse = await getEvent({
                     event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354",
                     user_id: "7a2d3700-bc9b-4e1b-9b1e-4042df891474"
@@ -25,18 +24,16 @@ export default function EventTile({
                 const maxTickets = eventResponse.data.max_tick;
 
                 try {
-                    // Get current ticket count for this event
                     const ticketResponse = await getTicket({
                         event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354"
                     });
                     const currentTickets = ticketResponse.data.ticket_count || 0;
                     setTicketsLeft(maxTickets - currentTickets);
                 } catch (ticketError) {
-                    // If no tickets found, treat as 0 tickets
                     if (ticketError.response?.status === 404) {
-                        setTicketsLeft(maxTickets);  // All tickets available
+                        setTicketsLeft(maxTickets);
                     } else {
-                        throw ticketError;  // Re-throw other errors
+                        throw ticketError;
                     }
                 }
             } catch (error) {

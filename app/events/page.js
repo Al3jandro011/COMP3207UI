@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import EventTile from '@/components/sidebar/EventTile';
+import EventTile from '@/components/EventTile';
 import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { makeCalendar } from '@/services/apiServices';
+import { useRouter } from 'next/navigation';
 
 export default function Events() {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const today = new Date();
@@ -26,6 +28,10 @@ export default function Events() {
         setError(true);
       });
   }, []);
+
+  const handleEventClick = (eventId) => {
+    router.push(`/events/${eventId}`);
+  };
 
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto">
@@ -53,14 +59,19 @@ export default function Events() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {events.map((event) => (
-              <EventTile
+              <div 
                 key={event.id}
-                imageUrl={event.img_url || "/example.jpg"}
-                title={event.name}
-                description={event.desc}
-                ticketsLeft={event.max_spaces}
-                id={event.id}
-              />
+                onClick={() => handleEventClick(event.id)}
+                className="cursor-pointer transition-transform hover:scale-[1.02]"
+              >
+                <EventTile
+                  imageUrl={event.img_url || "/example.jpg"}
+                  title={event.name}
+                  description={event.desc}
+                  ticketsLeft={event.max_spaces}
+                  id={event.id}
+                />
+              </div>
             ))}
           </div>
         )}
