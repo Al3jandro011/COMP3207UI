@@ -12,7 +12,6 @@ const Select = dynamic(() => import('react-select'), {
 export default function Timetable() {
   const router = useRouter();
 
-  // Set default dates (today and 1 month from today)
   const today = new Date();
   const nextMonth = new Date(today);
   nextMonth.setMonth(today.getMonth() + 1);

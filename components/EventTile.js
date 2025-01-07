@@ -5,11 +5,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getEvent, getTicket } from '@/services/apiServices';
 
-export default function EventTile({ 
+export default function EventTile({
     imageUrl = '/default-event.jpg',
     title = 'Event Title',
     description = 'Event description goes here',
-    id = '1'
+    id = '1',
+    groups = []
 }) {
     const [ticketsLeft, setTicketsLeft] = useState(null);
     const [loading, setLoading] = useState(true);

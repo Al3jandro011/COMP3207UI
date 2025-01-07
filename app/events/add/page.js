@@ -6,8 +6,17 @@ import { PlusIcon, XMarkIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/out
 import { createEvent, getLocationsAndGroups, getAiResponse } from '@/services/apiServices';
 
 export default function Add() {
+  const today = new Date();
+  const nextMonth = new Date(today);
+  nextMonth.setMonth(today.getMonth() + 1);
+
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(nextMonth);
   const [groups, setGroups] = useState(['']);
-  const [locations, setLocations] = useState([]);
+  const [buildings, setBuildings] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [selectedBuilding, setSelectedBuilding] = useState('');
+  const [selectedBuildingId, setSelectedBuildingId] = useState('');
   const [availableGroups, setAvailableGroups] = useState([]);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
@@ -16,22 +25,38 @@ export default function Add() {
     description: '',
     image: '',
     type: 'non-compulsory',
-    location: '',
+    building: '',
+    room: '',
     startTime: '',
     endTime: '',
-    maxSpaces: ''
+    maxSpaces: 0
   });
 
   useEffect(() => {
     getLocationsAndGroups()
     .then((res) => {
-      setLocations(/*res.data.locations ||*/ ["46/3020", "46/3021", "46/3022"]);
-      setAvailableGroups(/*res.data.groups ||*/ ["COMP3200", "COMP3210", "COMP3220"]);
+      const locations = res.data.locations || [];
+      setBuildings(locations);
+      setAvailableGroups(res.data.groups || ["COMP3200", "COMP3210", "COMP3220"]);
     })
     .catch((err) => {
       console.log(err);
     });
   }, []);
+
+  const handleBuildingChange = (e) => {
+    const building = e.target.value;
+    setSelectedBuilding(building);
+    
+    const selectedBuildingData = buildings.find(loc => loc.location_name === building);
+    if (selectedBuildingData) {
+      setSelectedBuildingId(selectedBuildingData.location_id);
+      setRooms(selectedBuildingData.rooms || []);
+    } else {
+      setSelectedBuildingId('');
+      setRooms([]);
+    }
+  };
 
   const addGroup = () => {
     setGroups([...groups, '']);
@@ -53,16 +78,16 @@ export default function Add() {
     
     try {
       const data = {
-        user_id: "1",
+        user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
         name: e.target.name.value,
         type: e.target.type.value,
         desc: e.target.description.value,
-        location_id: e.target.location.value,
-        start_date: e.target.startTime.value,
-        end_date: e.target.endTime.value,
-        max_tick: e.target.maxSpaces.value,
-        max_tick_pp: 1,
-        tags: groups,
+        location_id: selectedBuildingId,
+        room_id: e.target.room.value,
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        max_tick: parseInt(e.target.maxSpaces.value, 10),
+        groups: groups,
         img_url: e.target.image.value,
       };
       
@@ -87,9 +112,10 @@ export default function Add() {
             description: eventData.description || '',
             image: eventData.image || '',
             type: eventData.type || 'non-compulsory',
-            location: eventData.location || '',
-            startTime: eventData.startTime || '',
-            endTime: eventData.endTime || '',
+            building: eventData.building || '',
+            room: eventData.room || '',
+            startTime: eventData.startTime.toISOString() || '',
+            endTime: eventData.endTime.toISOString() || '',
             maxSpaces: eventData.maxSpaces || ''
           });
           
@@ -213,19 +239,23 @@ export default function Add() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <label className="block mb-1 text-sm text-gray-600 dark:text-gray-400">From</label>
-              <input 
-                name="startTime" 
-                type="datetime-local" 
-                required 
+              <input
+                name="startTime"
+                type="datetime-local"
+                value={startDate.toISOString().slice(0, 16)}
+                onChange={(e) => setStartDate(new Date(e.target.value))}
+                required
                 className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
               />
             </div>
             <div className="flex-1">
               <label className="block mb-1 text-sm text-gray-600 dark:text-gray-400">To</label>
-              <input 
-                name="endTime" 
-                type="datetime-local" 
-                required 
+              <input
+                name="endTime"
+                type="datetime-local"
+                value={endDate.toISOString().slice(0, 16)}
+                onChange={(e) => setEndDate(new Date(e.target.value))}
+                required
                 className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
               />
             </div>
@@ -236,12 +266,39 @@ export default function Add() {
           <label className="block mb-2 text-gray-900 dark:text-gray-100 font-medium">
             Location <span className="text-red-500 dark:text-red-400">*</span>
           </label>
-          <select name="location" required className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200">
-            <option value="">Select a location</option>
-            {locations.map((location) => (
-              <option key={location} value={location}>{location}</option>
-            ))}
-          </select>
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Building</label>
+              <select 
+                name="building"
+                value={selectedBuilding}
+                onChange={handleBuildingChange}
+                required 
+                className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+              >
+                <option value="">Select a building</option>
+                {buildings.map((building) => (
+                  <option key={building.location_id} value={building.location_name}>{building.location_name}</option>
+                ))}
+              </select>
+            </div>
+
+            {selectedBuilding && (
+              <div>
+                <label className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Room</label>
+                <select 
+                  name="room" 
+                  required 
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+                >
+                  <option value="">Select a room</option>
+                  {rooms.map((room) => (
+                    <option key={room.room_id} value={room.room_id}>{room.room_name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">

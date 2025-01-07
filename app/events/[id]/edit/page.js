@@ -14,22 +14,25 @@ export default function EditEvent({ params }) {
     useEffect(() => {
         const fetchEvent = async () => {
             try {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                const dummyEvent = {
-                    id: resolvedParams.id,
-                    name: "Example Event 1",
-                    description: "Example description 1",
-                    imageUrl: "/example.jpg",
-                    startTime: "2024-03-15T09:00:00",
-                    endTime: "2024-03-17T18:00:00",
-                    type: "non-compulsory",
-                    location: "Building 46, 3020",
-                    groups: ["COMP3200", "COMP3210", "COMP3220"],
-                };
+                const response = await getEvent({
+                    event_id: "65e508ff-b12b-4089-993d-fb7a87107c26",
+                    // user_id: "7a2d3700-bc9b-4e1b-9b1e-4042df891474"
+                });
 
-                setEvent(dummyEvent);
-                setGroups(dummyEvent.groups);
+                const eventData = response.data;
+                setEvent({
+                    id: eventData.id,
+                    name: eventData.name,
+                    description: eventData.desc,
+                    imageUrl: eventData.img_url,
+                    startTime: eventData.start_time,
+                    endTime: eventData.end_time,
+                    type: eventData.type,
+                    location: eventData.location,
+                    groups: eventData.groups,
+                    maxSpaces: eventData.max_spaces
+                });
+                setGroups(eventData.groups);
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching event:', error);
@@ -71,8 +74,7 @@ export default function EditEvent({ params }) {
                 maxSpaces: e.target.maxSpaces.value,
             };
 
-            // await updateEvent(formData);
-            // updateEvent(formData); 
+            await updateEvent(formData);
             router.push(`/events/${resolvedParams.id}`);
         } catch (error) {
             console.error('Error updating event:', error);
