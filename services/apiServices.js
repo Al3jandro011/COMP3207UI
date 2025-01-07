@@ -56,3 +56,15 @@ export const getTicket = (data) => {
 export const deleteTicket = (data) => {
 	return api.post(`/delete_ticket?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
 };
+
+// Add this function to get all events
+export const getAllEvents = () => {
+	return api.post(`/get_event?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, {});
+};
+
+// Add this function to get user's tickets
+export const getUserTickets = (userId) => {
+	return api.post(`/get_ticket?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, {
+		user_id: userId
+	});
+};

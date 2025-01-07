@@ -101,8 +101,7 @@ export default function EventPage({ params }) {
             
             // First get event details
             const eventResponse = await getEvent({
-                event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354",
-                user_id: "7a2d3700-bc9b-4e1b-9b1e-4042df891474"
+                event_id: resolvedParams.id,
             });
             console.log('Event response:', eventResponse.data);
             const maxTickets = eventResponse.data.max_tick;
@@ -111,7 +110,7 @@ export default function EventPage({ params }) {
                 // Then get ticket count
                 console.log('Fetching tickets for event:', resolvedParams.id);
                 const ticketResponse = await getTicket({
-                    event_id: "98dd2ea4-d46f-43bf-af1c-2409ce0d3354"
+                    event_id: resolvedParams.id
                 });
                 console.log('Ticket response:', ticketResponse.data);
                 const currentTickets = ticketResponse.data.ticket_count || 0;
