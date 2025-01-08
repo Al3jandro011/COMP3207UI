@@ -24,7 +24,12 @@ export const getEvent = (data) => {
 };
 
 export const makeCalendar = (data) => {
-	return api.post(`/make_calendar?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
+	console.log('makeCalendar request data:', data); // Log request data
+	return api.post(`/make_calendar?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, {
+		start_date: data.start_date,
+		end_date: data.end_date,
+		filters: data.filters || []
+	});
 };
 
 export const updateEvent = (data) => {

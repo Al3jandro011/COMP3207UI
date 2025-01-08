@@ -24,6 +24,16 @@ export default function Add() {
     const [formKey, setFormKey] = useState(Date.now());
     const [selectedRoomCapacity, setSelectedRoomCapacity] = useState(null);
     const [selectedRoomId, setSelectedRoomId] = useState('');
+    const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        image: '',
+        type: 'non-compulsory',
+        location: '',
+        startTime: '',
+        endTime: '',
+        maxSpaces: ''
+    });
 
     // Initialize date states with current date/time
     const [startDate, setStartDate] = useState(new Date());
@@ -110,16 +120,16 @@ export default function Add() {
         try {
             const data = {
                 user_id: TEST_USER_ID,
-                name: e.target.name.value,
+                name: formData.name,
                 type: types,
-                desc: e.target.description.value,
+                desc: formData.description,
                 location_id: selectedBuildingId,
-                room_id: e.target.room.value,
+                room_id: selectedRoomId,
                 start_date: startDate.toISOString(),
                 end_date: endDate.toISOString(),
-                max_tick: parseInt(e.target.maxSpaces.value, 10),
+                max_tick: parseInt(formData.maxSpaces, 10),
                 groups: groups,
-                img_url: e.target.image.value,
+                img_url: formData.image,
             };
 
             await createEvent(data);
@@ -139,11 +149,7 @@ export default function Add() {
             
             if (response && response.data.result) {
                 try {
-                    console.log('Response message:', response.data.result);
-                    
                     const jsonMatch = response.data.result.match(/\{[\s\S]*\}/);
-                    console.log('JSON match:', jsonMatch);
-                    
                     if (!jsonMatch) {
                         throw new Error('No JSON object found in response');
                     }
@@ -151,11 +157,41 @@ export default function Add() {
                     const jsonString = jsonMatch[0];
                     const eventData = JSON.parse(jsonString);
                     
-                    // Validate location
-                    const locationExists = locations.includes(eventData.room_id);
-                    if (!locationExists) {
-                        alert(`Location "${eventData.room_id}" is not available. Please select from: ${locations.join(', ')}`);
-                        eventData.room_id = ''; // Clear invalid location
+                    // Extract building code from location_id
+                    const buildingMatch = eventData.location_id.match(/\(([^)]+)\)/);
+                    const buildingCode = buildingMatch ? buildingMatch[1] : eventData.location_id;
+                    
+                    // Find the building
+                    const building = buildings.find(b => 
+                        b.location_code?.toLowerCase() === buildingCode.toLowerCase() ||
+                        b.location_name.toLowerCase().includes(eventData.location_id.toLowerCase())
+                    );
+
+                    console.log('Building search:', { buildingCode, building, locationId: eventData.location_id });
+
+                    if (!building) {
+                        alert(`Building "${eventData.location_id}" not found. Available buildings: ${buildings.map(b => `${b.location_name} (${b.location_code})`).join(', ')}`);
+                    } else {
+                        // Set the selected building
+                        setSelectedBuilding(building.location_name);
+                        setSelectedBuildingId(building.location_id);
+                        setRooms(building.rooms || []);
+
+                        // Find the room using room_id
+                        if (eventData.room_id) {
+                            const room = building.rooms?.find(r => 
+                                r.room_code === eventData.room_id ||
+                                r.room_name.includes(eventData.room_id) ||
+                                r.room_id === eventData.room_id
+                            );
+
+                            if (room) {
+                                setSelectedRoomId(room.room_id);
+                                setSelectedRoomCapacity(room.capacity);
+                            } else {
+                                alert(`Room "${eventData.room_id}" not found in ${building.location_name}. Available rooms: ${building.rooms?.map(r => `${r.room_name} (${r.room_code})`).join(', ')}`);
+                            }
+                        }
                     }
 
                     // Validate groups
@@ -180,18 +216,17 @@ export default function Add() {
                         return date.toISOString().slice(0, 16);
                     };
 
-                    const newFormData = {
+                    // Update form data
+                    setFormData({
                         name: eventData.name || '',
                         description: eventData.desc || '',
                         image: eventData.img_url || '',
                         type: 'non-compulsory',
-                        location: eventData.room_id || '',
+                        location: building?.location_name || '',
                         startTime: formatDate(eventData.start_date) || '',
                         endTime: formatDate(eventData.end_date) || '',
                         maxSpaces: eventData.max_tick?.toString() || ''
-                    };
-
-                    setFormData(newFormData);
+                    });
 
                     if (validGroups.length > 0) {
                         setGroups(validGroups);
@@ -266,6 +301,8 @@ export default function Add() {
                         name="name" 
                         type="text" 
                         required 
+                        value={formData.name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                         className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                     />
                 </div>
@@ -277,6 +314,8 @@ export default function Add() {
                     <textarea 
                         name="description" 
                         required 
+                        value={formData.description}
+                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                         className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200 min-h-[120px]"
                     />
                 </div>
@@ -286,7 +325,9 @@ export default function Add() {
                     <input 
                         name="image" 
                         type="url" 
-                        placeholder="Enter image URL" 
+                        placeholder="Enter image URL"
+                        value={formData.image}
+                        onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))} 
                         className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                     />
                 </div>
