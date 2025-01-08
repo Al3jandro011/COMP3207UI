@@ -49,14 +49,15 @@ export default function Home() {
 
   useEffect(() => {
     const fetchUserTickets = async () => {
-        try {
-            const response = await getUserTickets("7a2d3700-bc9b-4e1b-9b1e-4042df891474");
-            const ticketCount = response.data?.subscription_count || 0;
-            setSubscribedCount(ticketCount);
-        } catch (error) {
-            console.error('Error fetching user tickets:', error);
-            setSubscribedCount(0);
-        }
+      try {
+        const response = await getUserTickets(TEST_USER_ID);
+        const ticketCount = response.data?.subscription_count || 0;
+        console.log("Subscription count:", ticketCount);
+        setSubscribedCount(ticketCount);
+      } catch (error) {
+        console.error('Error fetching user tickets:', error);
+        setSubscribedCount(0);
+      }
     };
 
     fetchUserTickets();
@@ -82,14 +83,17 @@ export default function Home() {
     });
   };
 
-  const getUpcomingEventsForFirstGroup = () => {
+  const getUpcomingEventsForRandomGroup = () => {
     const now = new Date();
     const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     
-    const firstGroup = Object.entries(eventsByGroup).find(([_, events]) => events.length > 0);
-    if (!firstGroup) return { group: 'No Group', count: 0 };
+    // Get all groups that have events
+    const groupsWithEvents = Object.entries(eventsByGroup).filter(([_, events]) => events.length > 0);
+    if (groupsWithEvents.length === 0) return { group: 'No Group', count: 0 };
     
-    const [groupName, events] = firstGroup;
+    // Randomly select a group
+    const randomIndex = Math.floor(Math.random() * groupsWithEvents.length);
+    const [groupName, events] = groupsWithEvents[randomIndex];
     
     const upcomingEvents = events.filter(event => {
       const eventDate = new Date(event.start_date);
@@ -101,26 +105,13 @@ export default function Home() {
 
   const hasEvents = Object.values(eventsByGroup).some(events => events.length > 0);
   const upcomingEvents = getUpcomingEvents();
-  const firstGroupStats = getUpcomingEventsForFirstGroup();
+  const randomGroupStats = getUpcomingEventsForRandomGroup();
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Welcome to EVECS</h1>
         <p className="text-gray-600 dark:text-gray-400">Discover and manage your ECS events</p>
-      </div>
-
-      <div className="mb-8">
-        <div className="relative max-w-2xl">
-          <input 
-            type="text" 
-            placeholder="Search events..." 
-            className="w-full px-4 py-3 pl-12 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl 
-                     text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500
-                     focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
-          />
-          <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 dark:text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -140,9 +131,11 @@ export default function Home() {
 
         <div className="bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-500/10 dark:to-teal-500/10 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
           <UsersIcon className="w-6 h-6 text-emerald-500 dark:text-emerald-400 mb-2" />
-          <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{firstGroupStats.count}</h3>
+          <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {randomGroupStats.count}
+          </h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm">
-            Upcoming {firstGroupStats.group} Events
+            Upcoming {randomGroupStats.group} Events
           </p>
         </div>
       </div>

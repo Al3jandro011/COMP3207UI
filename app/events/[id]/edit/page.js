@@ -237,7 +237,7 @@ export default function EditEvent({ params }) {
                 event_id: resolvedParams.id,
                 user_id: TEST_USER_ID,
                 name: e.target.name.value,
-                type: types,
+                tags: types,
                 desc: e.target.description.value,
                 location_id: selectedBuildingId,
                 room_id: e.target.room.value,
