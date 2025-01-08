@@ -9,6 +9,9 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from 'next/navigation';
 
+const TEST_USER_ID = "836312bf-4d40-449e-a0ab-90c8c4f988a4";
+const TEST_USER_EMAIL = "admin@example.com";
+
 const MapComponent = dynamic(() => import("@/components/maps/GoogleMap"), {
 	ssr: false,
 	loading: () => (
@@ -28,7 +31,7 @@ function generateICSFile(event) {
 		`DTEND:${endDate}`,
 		`SUMMARY:${event.name}`,
 		`DESCRIPTION:${event.desc}`,
-		`LOCATION:${event.room_id}`,
+		`LOCATION: ${event.location_name}, Room ${event.room_id}`,
 		'END:VEVENT',
 		'END:VCALENDAR'
 	].join('\r\n');
@@ -47,6 +50,7 @@ export default function EventPage({ params }) {
 	const [ticketId, setTicketId] = useState(null);
 	const resolvedParams = React.use(params);
 
+
 	useEffect(() => {
 		const fetchEvent = async () => {
 			try {
@@ -56,27 +60,19 @@ export default function EventPage({ params }) {
 
 				const response = await getEvent(data);
 				const eventData = response.data;
-				console.log('Event data:', eventData);
 
 				setEvent(eventData);
 				setIsCreator(true);
 
 				try {
-					console.log('Checking ticket for user...');
 					const ticketResponse = await getTicket({
 						event_id: resolvedParams.id,
-						user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b"
+						user_id: TEST_USER_ID
 					});
-					console.log('Ticket response:', ticketResponse.data);
-					
-					const ticket = ticketResponse.data.tickets?.find(
-						ticket => ticket.event_id === resolvedParams.id
-					);
 
-					if (ticket) {
+					if (ticketResponse.data.subscribed) {
 						setIsInTimetable(true);
-						setTicketId(ticket.ticket_id);
-						console.log('Found ticket:', ticket);
+						setTicketId(ticketResponse.data.ticket.ticket_id);
 					} else {
 						setIsInTimetable(false);
 						setTicketId(null);
@@ -118,9 +114,9 @@ export default function EventPage({ params }) {
 
 			if (!isInTimetable) {
 				const response = await createTicket({
-					user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
+					user_id: TEST_USER_ID,
 					event_id: resolvedParams.id,
-					email: "test@example.com"
+					email: TEST_USER_EMAIL
 				});
 
 				if (response.data.result === "success") {
@@ -153,7 +149,7 @@ export default function EventPage({ params }) {
 		if (window.confirm("Are you sure you want to delete this event?")) {
 			try {
 				await deleteEvent({ 
-					user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
+					user_id: TEST_USER_ID,
 					event_id: resolvedParams.id 
 				});
 				router.push("/events");
@@ -275,7 +271,15 @@ export default function EventPage({ params }) {
 
 				<div className="space-y-2 bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
 					<p className="font-semibold text-gray-900 dark:text-gray-100">Group</p>
-					<p className="text-gray-600 dark:text-gray-400">{event.group}</p>
+					<div className="flex flex-wrap gap-2">
+						{event.groups.map((group, index) => (
+							<span key={index} className="px-3 py-1 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 
+											 dark:from-cyan-500/10 dark:to-blue-500/10 border border-cyan-500/20 
+											 rounded-full text-sm text-gray-700 dark:text-gray-300">
+								{group}
+							</span>
+						))}
+					</div>
 				</div>
 
 				<div className="space-y-2 bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">

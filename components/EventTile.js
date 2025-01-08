@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getEvent, getTicket, createTicket } from '@/services/apiServices';
+const TEST_USER_ID = "7ef177e5-17ef-4baa-940a-83ccd4bb33c7";
+const TEST_USER_EMAIL = "test@example.com";
+
 
 export default function EventTile({
     imageUrl = 'https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=',
@@ -11,7 +14,8 @@ export default function EventTile({
     description = 'Event description goes here',
     id = '1',
     groups = [],
-    onTimetableToggle
+    onTimetableToggle,
+    tags = []
 }) {
     const [ticketsLeft, setTicketsLeft] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -23,8 +27,8 @@ export default function EventTile({
         const checkTicket = async () => {
             try {
                 const ticketResponse = await getTicket({
-                    event_id: id,
-                    user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b"
+                    event_id: id,   
+                    user_id: TEST_USER_ID
                 });
                 setIsInTimetable(!!ticketResponse.data.ticket_id);
             } catch (error) {
@@ -80,9 +84,9 @@ export default function EventTile({
             if (!isInTimetable) {
                 // Create ticket
                 const response = await createTicket({
-                    user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
+                    user_id: TEST_USER_ID,
                     event_id: id,
-                    email: "test@example.com" // You might want to get this from user context/profile
+                    email: TEST_USER_EMAIL
                 });
 
                 if (response.data.result === "success") {
@@ -131,6 +135,16 @@ export default function EventTile({
                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                         {description}
                     </p>
+                    <div className="flex flex-wrap gap-2">
+                        {tags.map((tag, index) => (
+                            <span 
+                                key={index}
+                                className="px-3 py-1 text-xs font-medium bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-full"
+                            >
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
                     <div className="flex items-center justify-between pt-3">
                         <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-400">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -35,9 +35,8 @@ export const deleteEvent = (data) => {
 	return api.post(`/delete_event?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
 };
 
-// Get locations and groups
-export const getLocationsAndGroups = () => {
-	return api.get(`/get_location_groups?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
+export const getLocations = () => {
+	return api.get(`/get_location?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
 };
 
 // AI
@@ -102,4 +101,8 @@ export const updateUser = (data) => {
 // Add this new function
 export const getValidGroups = () => {
 	return api.get(`/get_valid_groups?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
+};
+
+export const getTags = () => {
+	return api.get(`/get_valid_tags?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
 };

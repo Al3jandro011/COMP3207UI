@@ -3,48 +3,70 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusIcon, XMarkIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
-import { getEvent, updateEvent, getLocationsAndGroups, getValidGroups, getAiResponse } from '@/services/apiServices';
+import { getEvent, updateEvent, getLocations, getValidGroups, getAiResponse, getTags } from '@/services/apiServices';
+
+const TEST_USER_ID = "836312bf-4d40-449e-a0ab-90c8c4f988a4";
+const TEST_USER_EMAIL = "admin@example.com";
 
 export default function EditEvent({ params }) {
     const router = useRouter();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [groups, setGroups] = useState(['']);
+    const [types, setTypes] = useState(['']);
     const [buildings, setBuildings] = useState([]);
     const [rooms, setRooms] = useState([]);
     const [selectedBuilding, setSelectedBuilding] = useState('');
     const [selectedBuildingId, setSelectedBuildingId] = useState('');
     const [availableGroups, setAvailableGroups] = useState([]);
+    const [availableTags, setAvailableTags] = useState([]);
     const [isAssistantOpen, setIsAssistantOpen] = useState(false);
     const [prompt, setPrompt] = useState('');
     const [formKey, setFormKey] = useState(Date.now());
+    const [selectedRoomCapacity, setSelectedRoomCapacity] = useState(null);
+    const [selectedRoomId, setSelectedRoomId] = useState('');
     const resolvedParams = React.use(params);
 
-    // Initialize date states
+    // TODO: Make sure tags/types work
+
+
+    // Initialize date states with current date/time
     const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(new Date(Date.now() + 3600000)); // Default 1 hour duration
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch locations and groups
-                const [locationsRes, groupsRes, eventRes] = await Promise.all([
-                    getLocationsAndGroups(),
+                // Fetch locations, groups, tags and event
+                const [locationsRes, groupsRes, tagsRes, eventRes] = await Promise.all([
+                    getLocations(),
                     getValidGroups(),
+                    getTags(),
                     getEvent({ event_id: resolvedParams.id })
                 ]);
 
                 const locations = locationsRes.data.locations || [];
                 setBuildings(locations);
                 setAvailableGroups(groupsRes.data.groups || []);
+                setAvailableTags(tagsRes.data.tags || []);
 
                 const eventData = eventRes.data;
                 
                 // Set event data
                 setEvent(eventData);
                 setGroups(eventData.groups || ['']);
-                setStartDate(new Date(eventData.start_date));
-                setEndDate(new Date(eventData.end_date));
+                
+                // Initialize types with the event type if it exists, otherwise use first available tag
+                if (eventData.type) {
+                    setTypes([eventData.type]);
+                } else if (tagsRes.data.tags && tagsRes.data.tags.length > 0) {
+                    setTypes([tagsRes.data.tags[0]]);
+                }
+
+                // Set dates from event data with fallback to current time
+                setStartDate(eventData.start_date ? new Date(eventData.start_date) : new Date());
+                setEndDate(eventData.end_date ? new Date(eventData.end_date) : new Date(Date.now() + 3600000));
+                setSelectedRoomId(eventData.room_id);
 
                 // Set building and room
                 const building = locations.find(loc => loc.location_id === eventData.location_id);
@@ -52,6 +74,12 @@ export default function EditEvent({ params }) {
                     setSelectedBuilding(building.location_name);
                     setSelectedBuildingId(building.location_id);
                     setRooms(building.rooms || []);
+                    
+                    // Set initial room capacity
+                    const selectedRoom = building.rooms?.find(room => room.room_id === eventData.room_id);
+                    if (selectedRoom) {
+                        setSelectedRoomCapacity(selectedRoom.capacity);
+                    }
                 }
 
                 setLoading(false);
@@ -72,10 +100,20 @@ export default function EditEvent({ params }) {
         if (selectedBuildingData) {
             setSelectedBuildingId(selectedBuildingData.location_id);
             setRooms(selectedBuildingData.rooms || []);
+            setSelectedRoomCapacity(null); // Reset room capacity when building changes
         } else {
             setSelectedBuildingId('');
             setRooms([]);
+            setSelectedRoomCapacity(null);
         }
+    };
+
+    const handleRoomChange = (e) => {
+        const roomId = e.target.value;
+        setSelectedRoomId(roomId);
+        const selectedBuilding = buildings.find(b => b.location_id === selectedBuildingId);
+        const selectedRoom = selectedBuilding?.rooms?.find(r => r.room_id === roomId);
+        setSelectedRoomCapacity(selectedRoom?.capacity || null);
     };
 
     const addGroup = () => {
@@ -90,6 +128,20 @@ export default function EditEvent({ params }) {
         const newGroups = [...groups];
         newGroups[index] = value;
         setGroups(newGroups);
+    };
+
+    const addType = () => {
+        setTypes([...types, availableTags[0] || '']);
+    };
+
+    const removeType = (index) => {
+        setTypes(types.filter((_, i) => i !== index));
+    };
+
+    const updateType = (index, value) => {
+        const newTypes = [...types];
+        newTypes[index] = value;
+        setTypes(newTypes);
     };
 
     const handleAssistantSubmit = async (e) => {
@@ -183,9 +235,9 @@ export default function EditEvent({ params }) {
         try {
             const data = {
                 event_id: resolvedParams.id,
-                user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
+                user_id: TEST_USER_ID,
                 name: e.target.name.value,
-                type: e.target.type.value,
+                type: types,
                 desc: e.target.description.value,
                 location_id: selectedBuildingId,
                 room_id: e.target.room.value,
@@ -258,18 +310,43 @@ export default function EditEvent({ params }) {
                 </div>
 
                 <div className="bg-gray-800/50 p-4 sm:p-6 rounded-xl border border-gray-700/50">
-                    <label className="block mb-2 text-gray-100 font-medium">
-                        Type <span className="text-red-400">*</span>
+                    <label className="block mb-4 text-gray-100 font-medium">
+                        Types <span className="text-red-400">*</span>
                     </label>
-                    <select 
-                        name="type"
-                        defaultValue={event.type}
-                        required
-                        className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
-                    >
-                        <option value="compulsory">Compulsory</option>
-                        <option value="non-compulsory">Non-compulsory</option>
-                    </select>
+                    <div className="space-y-3">
+                        {types.map((type, index) => (
+                            <div key={index} className="flex gap-2">
+                                <select
+                                    value={type}
+                                    onChange={(e) => updateType(index, e.target.value)}
+                                    className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+                                    required
+                                >
+                                    <option value="">Select a type</option>
+                                    {availableTags.map((tag) => (
+                                        <option key={tag} value={tag}>{tag}</option>
+                                    ))}
+                                </select>
+                                {types.length > 1 && (
+                                    <button 
+                                        type="button"
+                                        onClick={() => removeType(index)}
+                                        className="p-3 text-red-400 hover:text-red-300 transition-colors"
+                                    >
+                                        <XMarkIcon className="w-5 h-5" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        <button 
+                            type="button"
+                            onClick={addType}
+                            className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center space-x-1"
+                        >
+                            <PlusIcon className="w-4 h-4" />
+                            <span>Add Type</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="bg-gray-800/50 p-4 sm:p-6 rounded-xl border border-gray-700/50">
@@ -279,22 +356,26 @@ export default function EditEvent({ params }) {
                     <div className="space-y-3">
                         {groups.map((group, index) => (
                             <div key={index} className="flex gap-2">
-                                <input 
-                                    type="text"
+                                <select
                                     value={group}
                                     onChange={(e) => updateGroup(index, e.target.value)}
-                                    className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+                                    className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                                     required
-                                />
+                                >
+                                    <option value="">Select a group</option>
+                                    {availableGroups.map((groupOption) => (
+                                        <option key={groupOption} value={groupOption}>
+                                            {groupOption}
+                                        </option>
+                                    ))}
+                                </select>
                                 {groups.length > 1 && (
                                     <button 
                                         type="button"
                                         onClick={() => removeGroup(index)}
                                         className="p-3 text-red-400 hover:text-red-300 transition-colors"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                                        <XMarkIcon className="w-5 h-5" />
                                     </button>
                                 )}
                             </div>
@@ -304,9 +385,7 @@ export default function EditEvent({ params }) {
                             onClick={addGroup}
                             className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center space-x-1"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
+                            <PlusIcon className="w-4 h-4" />
                             <span>Add Group</span>
                         </button>
                     </div>
@@ -322,7 +401,8 @@ export default function EditEvent({ params }) {
                             <input 
                                 name="startTime"
                                 type="datetime-local"
-                                defaultValue={event.start_date}
+                                value={startDate.toISOString().slice(0, 16)}
+                                onChange={(e) => setStartDate(new Date(e.target.value))}
                                 required
                                 className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                             />
@@ -332,7 +412,8 @@ export default function EditEvent({ params }) {
                             <input 
                                 name="endTime"
                                 type="datetime-local"
-                                defaultValue={event.end_date}
+                                value={endDate.toISOString().slice(0, 16)}
+                                onChange={(e) => setEndDate(new Date(e.target.value))}
                                 required
                                 className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                             />
@@ -346,7 +427,6 @@ export default function EditEvent({ params }) {
                     </label>
                     <select 
                         name="location"
-                        defaultValue={selectedBuilding}
                         value={selectedBuilding}
                         onChange={handleBuildingChange}
                         required
@@ -367,8 +447,8 @@ export default function EditEvent({ params }) {
                     </label>
                     <select 
                         name="room"
-                        defaultValue={event.room_id}
-                        value={event.room_id}
+                        value={selectedRoomId}
+                        onChange={handleRoomChange}
                         required
                         className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                     >
@@ -379,6 +459,11 @@ export default function EditEvent({ params }) {
                             </option>
                         ))}
                     </select>
+                    {selectedRoomCapacity !== null && (
+                        <p className="mt-2 text-sm text-gray-400">
+                            Room capacity: {selectedRoomCapacity} spaces
+                        </p>
+                    )}
                 </div>
 
                 <div className="bg-gray-800/50 p-4 sm:p-6 rounded-xl border border-gray-700/50">

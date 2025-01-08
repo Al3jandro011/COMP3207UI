@@ -5,7 +5,8 @@ import Link from 'next/link';
 import EventTile from '@/components/EventTile';
 import { MagnifyingGlassIcon, ClockIcon, TicketIcon, UsersIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { getAllEvents, getUserTickets, getUserDetails } from '@/services/apiServices';
-const TEST_USER_ID = "7ef177e5-17ef-4baa-940a-83ccd4bb33c7";
+const TEST_USER_ID = "836312bf-4d40-449e-a0ab-90c8c4f988a4";
+const TEST_USER_EMAIL = "admin@example.com";
 
 export default function Home() {
   const [eventsByGroup, setEventsByGroup] = useState({});
@@ -171,6 +172,8 @@ export default function Home() {
                       imageUrl={event.img_url || "/example.jpg"}
                       title={event.name || 'Untitled Event'}
                       description={event.desc || 'No description available'}
+                      groups={event.groups || []}
+                      tags={event.tags || []}
                     />
                   ))}
                 </div>
