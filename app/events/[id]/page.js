@@ -4,10 +4,11 @@ import React from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { CalendarIcon, MapPinIcon, CalendarDaysIcon, LinkIcon, TicketIcon } from "@heroicons/react/24/outline";
-import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent } from "@/services/apiServices";
+import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent, getUserDetails } from "@/services/apiServices";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from 'next/navigation';
+const TEST_USER_ID = "836312bf-4d40-449e-a0ab-90c8c4f988a4";
 
 const MapComponent = dynamic(() => import("@/components/maps/GoogleMap"), {
 	ssr: false,
@@ -45,27 +46,31 @@ export default function EventPage({ params }) {
 	const [ticketsLeft, setTicketsLeft] = useState(null);
 	const [isCreatingTicket, setIsCreatingTicket] = useState(false);
 	const [ticketId, setTicketId] = useState(null);
+	const [ticketHolders, setTicketHolders] = useState([]);
+	const [isAuthorized, setIsAuthorized] = useState(false);
 	const resolvedParams = React.use(params);
 
 	useEffect(() => {
 		const fetchEvent = async () => {
 			try {
-				const data = {
-					event_id: resolvedParams.id,
-				};
+				const [eventResponse, userResponse] = await Promise.all([
+					getEvent({ event_id: resolvedParams.id }),
+					getUserDetails({ user_id: TEST_USER_ID })
+				]);
 
-				const response = await getEvent(data);
-				const eventData = response.data;
+				const eventData = eventResponse.data;
 				console.log('Event data:', eventData);
 
 				setEvent(eventData);
 				setIsCreator(true);
+				
+				setIsAuthorized(userResponse.data.user.auth || false);
 
 				try {
 					console.log('Checking ticket for user...');
 					const ticketResponse = await getTicket({
 						event_id: resolvedParams.id,
-						user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b"
+						user_id: TEST_USER_ID
 					});
 					console.log('Ticket response:', ticketResponse.data);
 					
@@ -110,6 +115,22 @@ export default function EventPage({ params }) {
 		fetchEvent();
 	}, [resolvedParams.id]);
 
+	useEffect(() => {
+		const fetchTicketHolders = async () => {
+			try {
+				const response = await getTicket({
+					event_id: resolvedParams.id
+				});
+				
+				setTicketHolders(response.data.tickets || []);
+			} catch (error) {
+				console.error('Error fetching ticket holders:', error);
+			}
+		};
+
+		fetchTicketHolders();
+	}, [resolvedParams.id]);
+
 	const handleTimetableToggle = async () => {
 		if (isCreatingTicket) return;
 
@@ -118,7 +139,7 @@ export default function EventPage({ params }) {
 
 			if (!isInTimetable) {
 				const response = await createTicket({
-					user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
+					user_id: TEST_USER_ID,
 					event_id: resolvedParams.id,
 					email: "test@example.com"
 				});
@@ -153,7 +174,7 @@ export default function EventPage({ params }) {
 		if (window.confirm("Are you sure you want to delete this event?")) {
 			try {
 				await deleteEvent({ 
-					user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
+					user_id: TEST_USER_ID,
 					event_id: resolvedParams.id 
 				});
 				router.push("/events");
@@ -291,6 +312,40 @@ export default function EventPage({ params }) {
 					</div>
 					<MapComponent id={event.location_id} />
 				</div>
+
+				{isAuthorized && (
+					<div className="space-y-2 bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
+						<p className="font-semibold text-gray-900 dark:text-gray-100">Users</p>
+						{ticketHolders.length === 0 ? (
+							<p className="text-gray-600 dark:text-gray-400">No users have tickets for this event yet.</p>
+						) : (
+							<div className="space-y-3">
+								{ticketHolders.map((ticket) => (
+									<div 
+										key={ticket.ticket_id}
+										className="flex items-center justify-between p-3 bg-white dark:bg-gray-700/50 
+												 rounded-lg border border-gray-200 dark:border-gray-600"
+									>
+										<div className="flex items-center space-x-3">
+											<div className="w-2 h-2 rounded-full bg-gradient-to-r 
+													 from-cyan-500 to-blue-500" />
+											<span className="text-gray-700 dark:text-gray-300">
+												{ticket.email}
+											</span>
+										</div>
+										<span className={`px-2 py-1 text-xs rounded-full ${
+											ticket.validated
+												? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+												: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+										}`}>
+											{ticket.validated ? 'Validated' : 'Not Validated'}
+										</span>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				)}
 			</div>
 		</div>
 	);

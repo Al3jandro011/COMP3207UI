@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUserDetails, updateUser, getValidGroups } from '@/services/apiServices';
 
-const TEST_USER_ID = "7ef177e5-17ef-4baa-940a-83ccd4bb33c7";
+const TEST_USER_ID = "836312bf-4d40-449e-a0ab-90c8c4f988a4";
 
 export default function Account() {
   const router = useRouter();

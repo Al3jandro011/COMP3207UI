@@ -3,37 +3,17 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getEvent, getTicket, createTicket } from '@/services/apiServices';
+import { getEvent, getTicket } from '@/services/apiServices';
 
 export default function EventTile({
     imageUrl = 'https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=',
     title = 'Event Title',
     description = 'Event description goes here',
     id = '1',
-    groups = [],
-    onTimetableToggle
+    groups = []
 }) {
     const [ticketsLeft, setTicketsLeft] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isInTimetable, setIsInTimetable] = useState(false);
-    const [isCreatingTicket, setIsCreatingTicket] = useState(false);
-
-    // Check if user already has a ticket
-    useEffect(() => {
-        const checkTicket = async () => {
-            try {
-                const ticketResponse = await getTicket({
-                    event_id: id,
-                    user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b"
-                });
-                setIsInTimetable(!!ticketResponse.data.ticket_id);
-            } catch (error) {
-                setIsInTimetable(false);
-            }
-        };
-
-        checkTicket();
-    }, [id]);
 
     // Get tickets left count
     useEffect(() => {
@@ -70,45 +50,6 @@ export default function EventTile({
         }
     }, [id]);
 
-    const handleTimetableToggle = async (e) => {
-        e.preventDefault();
-        if (isCreatingTicket) return;
-
-        try {
-            setIsCreatingTicket(true);
-
-            if (!isInTimetable) {
-                // Create ticket
-                const response = await createTicket({
-                    user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
-                    event_id: id,
-                    email: "test@example.com" // You might want to get this from user context/profile
-                });
-
-                if (response.data.result === "success") {
-                    setIsInTimetable(true);
-                    // Update tickets left count
-                    setTicketsLeft(prev => prev !== null ? prev - 1 : null);
-                    if (onTimetableToggle) {
-                        onTimetableToggle(id);
-                    }
-                }
-            } else {
-                // Handle remove from timetable if needed
-                setIsInTimetable(false);
-                setTicketsLeft(prev => prev !== null ? prev + 1 : null);
-                if (onTimetableToggle) {
-                    onTimetableToggle(id);
-                }
-            }
-        } catch (error) {
-            console.error('Error toggling ticket:', error);
-            alert(error.response?.data?.error || 'Failed to update ticket');
-        } finally {
-            setIsCreatingTicket(false);
-        }
-    };
-
     return (
         <Link href={`/events/${id}`} className="block">
             <div className="group rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-lg 
@@ -131,7 +72,7 @@ export default function EventTile({
                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                         {description}
                     </p>
-                    <div className="flex items-center justify-between pt-3">
+                    <div className="flex items-center pt-3">
                         <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-400">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
@@ -143,21 +84,6 @@ export default function EventTile({
                                  `${ticketsLeft} available`}
                             </span>
                         </div>
-                        <button
-                            onClick={handleTimetableToggle}
-                            disabled={isCreatingTicket || (ticketsLeft === 0 && !isInTimetable)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                isInTimetable 
-                                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500' 
-                                    : ticketsLeft === 0
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'
-                            } text-white focus:ring-2 focus:ring-cyan-500/50 focus:outline-none`}
-                        >
-                            {isCreatingTicket ? 'Processing...' : 
-                             isInTimetable ? 'Remove' : 
-                             ticketsLeft === 0 ? 'Sold Out' : 'Add to Timetable'}
-                        </button>
                     </div>
                 </div>
             </div>
