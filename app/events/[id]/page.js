@@ -3,8 +3,8 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { CalendarIcon, MapPinIcon, CalendarDaysIcon, LinkIcon, TicketIcon } from "@heroicons/react/24/outline";
-import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent, getUserDetails } from "@/services/apiServices";
+import { CalendarIcon, MapPinIcon, CalendarDaysIcon, LinkIcon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent, getUserDetails, getUserIdFromEmail } from "@/services/apiServices";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from 'next/navigation';
@@ -130,6 +130,107 @@ const CodeModal = ({ isOpen, onClose }) => {
 	);
 };
 
+const AddTicketModal = ({ 
+	isOpen, 
+	onClose, 
+	emailInput, 
+	setEmailInput, 
+	isProcessing, 
+	setIsProcessing,
+	resolvedParams,
+	setTicketHolders 
+}) => {
+	if (!isOpen) return null;
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		setIsProcessing(true);
+		
+		try {
+			// Get user ID from email
+			const response = await getUserIdFromEmail(emailInput);
+			const userId = response.data.email_to_user_id[emailInput];
+			
+			if (!userId) {
+				alert('User not found with this email');
+				return;
+			}
+
+			// Create ticket for the user
+			await createTicket({
+				user_id: userId,
+				event_id: resolvedParams.id,
+				email: emailInput
+			});
+
+			// Refresh ticket holders list
+			const ticketResponse = await getTicket({
+				event_id: resolvedParams.id
+			});
+			setTicketHolders(ticketResponse.data.tickets || []);
+			
+			onClose();
+			setEmailInput('');
+		} catch (error) {
+			console.error('Error creating ticket:', error);
+			alert(error.response?.data?.error || 'Failed to create ticket');
+		} finally {
+			setIsProcessing(false);
+		}
+	};
+
+	return (
+		<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+			<div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 space-y-4">
+				<div className="flex justify-between items-center">
+					<h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+						Add Ticket for User
+					</h3>
+					<button
+						onClick={onClose}
+						className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+					>
+						<XMarkIcon className="w-6 h-6" />
+					</button>
+				</div>
+				
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div>
+						<label className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+							User Email
+						</label>
+						<input
+							type="email"
+							value={emailInput}
+							onChange={(e) => setEmailInput(e.target.value)}
+							required
+							className="w-full px-4 py-2 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100"
+							placeholder="Enter user email"
+						/>
+					</div>
+
+					<div className="flex justify-end gap-4">
+						<button
+							type="button"
+							onClick={onClose}
+							className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							disabled={isProcessing}
+							className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg disabled:opacity-50"
+						>
+							{isProcessing ? 'Adding...' : 'Add Ticket'}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
+};
+
 export default function EventPage({ params }) {
 	const router = useRouter();
 	const [event, setEvent] = useState(null);
@@ -143,6 +244,9 @@ export default function EventPage({ params }) {
 	const [isAuthorized, setIsAuthorized] = useState(false);
 	const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
 	const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
+	const [isAddTicketModalOpen, setIsAddTicketModalOpen] = useState(false);
+	const [emailInput, setEmailInput] = useState('');
+	const [isProcessing, setIsProcessing] = useState(false);
 	const resolvedParams = React.use(params);
 
 
@@ -303,6 +407,19 @@ export default function EventPage({ params }) {
 				isOpen={isCodeModalOpen} 
 				onClose={() => setIsCodeModalOpen(false)} 
 			/>
+			<AddTicketModal 
+				isOpen={isAddTicketModalOpen} 
+				onClose={() => {
+					setIsAddTicketModalOpen(false);
+					setEmailInput('');
+				}}
+				emailInput={emailInput}
+				setEmailInput={setEmailInput}
+				isProcessing={isProcessing}
+				setIsProcessing={setIsProcessing}
+				resolvedParams={resolvedParams}
+				setTicketHolders={setTicketHolders}
+			/>
 
 			<div className="relative w-full h-[250px] sm:h-[400px] rounded-2xl overflow-hidden">
 				<Image
@@ -448,7 +565,17 @@ export default function EventPage({ params }) {
 
 				{isAuthorized && (
 					<div className="space-y-2 bg-gray-100 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
-						<p className="font-semibold text-gray-900 dark:text-gray-100">Users</p>
+						<div className="flex justify-between items-center mb-4">
+							<p className="font-semibold text-gray-900 dark:text-gray-100">Users</p>
+							{event.tags.includes('Compulsory') && (
+								<button
+									onClick={() => setIsAddTicketModalOpen(true)}
+									className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg text-sm"
+								>
+									Add User
+								</button>
+							)}
+						</div>
 						{ticketHolders.length === 0 ? (
 							<p className="text-gray-600 dark:text-gray-400">No users have tickets for this event yet.</p>
 						) : (

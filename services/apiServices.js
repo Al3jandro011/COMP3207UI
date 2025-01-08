@@ -111,3 +111,13 @@ export const getValidGroups = () => {
 export const getTags = () => {
 	return api.get(`/get_valid_tags?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
 };
+
+// Add this function to get user IDs from emails
+export const getUserIdFromEmail = (emails) => {
+	// Convert single email to array if needed
+	const emailData = {
+		emails: Array.isArray(emails) ? emails : [emails]
+	};
+
+	return api.post(`/get_user_id_from_email?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, emailData);
+};
