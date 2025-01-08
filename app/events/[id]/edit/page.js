@@ -2,46 +2,81 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getEvent, updateEvent } from '@/services/apiServices';
+import { PlusIcon, XMarkIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { getEvent, updateEvent, getLocationsAndGroups, getValidGroups, getAiResponse } from '@/services/apiServices';
 
 export default function EditEvent({ params }) {
     const router = useRouter();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [groups, setGroups] = useState(['']);
+    const [buildings, setBuildings] = useState([]);
+    const [rooms, setRooms] = useState([]);
+    const [selectedBuilding, setSelectedBuilding] = useState('');
+    const [selectedBuildingId, setSelectedBuildingId] = useState('');
+    const [availableGroups, setAvailableGroups] = useState([]);
+    const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+    const [prompt, setPrompt] = useState('');
+    const [formKey, setFormKey] = useState(Date.now());
     const resolvedParams = React.use(params);
 
-    useEffect(() => {
-        const fetchEvent = async () => {
-            try {
-                const response = await getEvent({
-                    event_id: "65e508ff-b12b-4089-993d-fb7a87107c26",
-                    // user_id: "7a2d3700-bc9b-4e1b-9b1e-4042df891474"
-                });
+    // Initialize date states
+    const [startDate, setStartDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(new Date());
 
-                const eventData = response.data;
-                setEvent({
-                    id: eventData.id,
-                    name: eventData.name,
-                    description: eventData.desc,
-                    imageUrl: eventData.img_url,
-                    startTime: eventData.start_time,
-                    endTime: eventData.end_time,
-                    type: eventData.type,
-                    location: eventData.location,
-                    groups: eventData.groups,
-                    maxSpaces: eventData.max_spaces
-                });
-                setGroups(eventData.groups);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch locations and groups
+                const [locationsRes, groupsRes, eventRes] = await Promise.all([
+                    getLocationsAndGroups(),
+                    getValidGroups(),
+                    getEvent({ event_id: resolvedParams.id })
+                ]);
+
+                const locations = locationsRes.data.locations || [];
+                setBuildings(locations);
+                setAvailableGroups(groupsRes.data.groups || []);
+
+                const eventData = eventRes.data;
+                
+                // Set event data
+                setEvent(eventData);
+                setGroups(eventData.groups || ['']);
+                setStartDate(new Date(eventData.start_date));
+                setEndDate(new Date(eventData.end_date));
+
+                // Set building and room
+                const building = locations.find(loc => loc.location_id === eventData.location_id);
+                if (building) {
+                    setSelectedBuilding(building.location_name);
+                    setSelectedBuildingId(building.location_id);
+                    setRooms(building.rooms || []);
+                }
+
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching event:', error);
+                console.error('Error fetching data:', error);
                 setLoading(false);
             }
         };
 
-        fetchEvent();
+        fetchData();
     }, [resolvedParams.id]);
+
+    const handleBuildingChange = (e) => {
+        const building = e.target.value;
+        setSelectedBuilding(building);
+        
+        const selectedBuildingData = buildings.find(loc => loc.location_name === building);
+        if (selectedBuildingData) {
+            setSelectedBuildingId(selectedBuildingData.location_id);
+            setRooms(selectedBuildingData.rooms || []);
+        } else {
+            setSelectedBuildingId('');
+            setRooms([]);
+        }
+    };
 
     const addGroup = () => {
         setGroups([...groups, '']);
@@ -57,24 +92,111 @@ export default function EditEvent({ params }) {
         setGroups(newGroups);
     };
 
+    const handleAssistantSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            console.log('Sending prompt:', prompt);
+            const response = await getAiResponse({ text: prompt });
+            console.log('Raw API response:', response);
+            
+            if (response && response.data.result) {
+                try {
+                    console.log('Response message:', response.data.result);
+                    
+                    const jsonMatch = response.data.result.match(/\{[\s\S]*\}/);
+                    console.log('JSON match:', jsonMatch);
+                    
+                    if (!jsonMatch) {
+                        throw new Error('No JSON object found in response');
+                    }
+                    
+                    const jsonString = jsonMatch[0];
+                    const eventData = JSON.parse(jsonString);
+                    
+                    // Validate location
+                    const locationExists = locations.includes(eventData.room_id);
+                    if (!locationExists) {
+                        alert(`Location "${eventData.room_id}" is not available. Please select from: ${locations.join(', ')}`);
+                        eventData.room_id = '';
+                    }
+
+                    // Validate groups
+                    let validGroups = [];
+                    let invalidGroups = [];
+                    if (eventData.groups && Array.isArray(eventData.groups)) {
+                        eventData.groups.forEach(group => {
+                            if (availableGroups.includes(group)) {
+                                validGroups.push(group);
+                            } else {
+                                invalidGroups.push(group);
+                            }
+                        });
+
+                        if (invalidGroups.length > 0) {
+                            alert(`The following groups are not available: ${invalidGroups.join(', ')}\nPlease select from: ${availableGroups.join(', ')}`);
+                        }
+                    }
+
+                    const formatDate = (dateString) => {
+                        const date = new Date(dateString);
+                        return date.toISOString().slice(0, 16);
+                    };
+
+                    setEvent({
+                        ...event,
+                        name: eventData.name || event.name,
+                        desc: eventData.desc || event.desc,
+                        img_url: eventData.img_url || event.img_url,
+                        type: eventData.type || event.type,
+                        room_id: eventData.room_id || event.room_id,
+                        start_date: eventData.start_date || event.start_date,
+                        end_date: eventData.end_date || event.end_date,
+                        max_tick: eventData.max_tick || event.max_tick
+                    });
+
+                    // Update dates
+                    if (eventData.start_date) setStartDate(new Date(eventData.start_date));
+                    if (eventData.end_date) setEndDate(new Date(eventData.end_date));
+
+                    // Only set valid groups
+                    if (validGroups.length > 0) {
+                        setGroups(validGroups);
+                    }
+
+                    setFormKey(Date.now());
+
+                } catch (error) {
+                    console.error('Error parsing AI response:', error);
+                    alert('Failed to parse the AI response. Please try again.');
+                }
+            }
+        } catch (error) {
+            console.error('Error getting AI response:', error);
+            alert('Failed to get AI response. Please try again.');
+        }
+        setIsAssistantOpen(false);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         
         try {
-            const formData = {
-                id: resolvedParams.id,
+            const data = {
+                event_id: resolvedParams.id,
+                user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
                 name: e.target.name.value,
-                description: e.target.description.value,
-                imageUrl: e.target.image.value,
                 type: e.target.type.value,
-                startTime: e.target.startTime.value,
-                endTime: e.target.endTime.value,
-                location: e.target.location.value,
+                desc: e.target.description.value,
+                location_id: selectedBuildingId,
+                room_id: e.target.room.value,
+                start_date: startDate.toISOString(),
+                end_date: endDate.toISOString(),
+                max_tick: parseInt(e.target.maxSpaces.value, 10),
                 groups: groups,
-                maxSpaces: e.target.maxSpaces.value,
+                img_url: e.target.image.value,
             };
 
-            await updateEvent(formData);
+            await updateEvent(data);
             router.push(`/events/${resolvedParams.id}`);
         } catch (error) {
             console.error('Error updating event:', error);
@@ -90,6 +212,7 @@ export default function EditEvent({ params }) {
         return <div className="p-8 text-gray-400">Event not found</div>;
     }
 
+    // Return the same form structure as Add Event, but with defaultValue/value set from event data
     return (
         <div className="p-4 sm:p-8 max-w-7xl mx-auto">
             <div className="mb-6 sm:mb-8">
@@ -117,7 +240,7 @@ export default function EditEvent({ params }) {
                     </label>
                     <textarea 
                         name="description"
-                        defaultValue={event.description}
+                        defaultValue={event.desc}
                         required
                         className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200 min-h-[120px]"
                     />
@@ -127,7 +250,7 @@ export default function EditEvent({ params }) {
                     <label className="block mb-2 text-gray-100 font-medium">Image URL</label>
                     <input 
                         name="image"
-                        defaultValue={event.imageUrl}
+                        defaultValue={event.img_url}
                         type="url" 
                         placeholder="Enter image URL"
                         className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
@@ -199,7 +322,7 @@ export default function EditEvent({ params }) {
                             <input 
                                 name="startTime"
                                 type="datetime-local"
-                                defaultValue={event.startTime}
+                                defaultValue={event.start_date}
                                 required
                                 className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                             />
@@ -209,7 +332,7 @@ export default function EditEvent({ params }) {
                             <input 
                                 name="endTime"
                                 type="datetime-local"
-                                defaultValue={event.endTime}
+                                defaultValue={event.end_date}
                                 required
                                 className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                             />
@@ -221,13 +344,41 @@ export default function EditEvent({ params }) {
                     <label className="block mb-2 text-gray-100 font-medium">
                         Location <span className="text-red-400">*</span>
                     </label>
-                    <input 
+                    <select 
                         name="location"
-                        defaultValue={event.location}
-                        type="text"
+                        defaultValue={selectedBuilding}
+                        value={selectedBuilding}
+                        onChange={handleBuildingChange}
                         required
-                        className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
-                    />
+                        className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+                    >
+                        <option value="">Select a location</option>
+                        {buildings.map((building) => (
+                            <option key={building.location_id} value={building.location_name}>
+                                {building.location_name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="bg-gray-800/50 p-4 sm:p-6 rounded-xl border border-gray-700/50">
+                    <label className="block mb-2 text-gray-100 font-medium">
+                        Room <span className="text-red-400">*</span>
+                    </label>
+                    <select 
+                        name="room"
+                        defaultValue={event.room_id}
+                        value={event.room_id}
+                        required
+                        className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
+                    >
+                        <option value="">Select a room</option>
+                        {rooms.map((room) => (
+                            <option key={room.room_id} value={room.room_id}>
+                                {room.room_name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className="bg-gray-800/50 p-4 sm:p-6 rounded-xl border border-gray-700/50">
@@ -236,7 +387,7 @@ export default function EditEvent({ params }) {
                     </label>
                     <input 
                         name="maxSpaces"
-                        defaultValue={event.maxSpaces}
+                        defaultValue={event.max_tick}
                         type="number"
                         min="1"
                         required

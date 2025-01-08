@@ -19,10 +19,8 @@ export default function Home() {
         const response = await getAllEvents();
         const allEvents = response.data?.events || [];
 
-        // Get all unique groups from events
         const allGroups = [...new Set(allEvents.map(event => event.group))].filter(Boolean);
         
-        // Randomly select up to 3 groups
         const selectedGroups = allGroups
           .sort(() => 0.5 - Math.random())
           .slice(0, 3);
@@ -42,7 +40,7 @@ export default function Home() {
   useEffect(() => {
     const fetchUserTickets = async () => {
         try {
-            const response = await getUserTickets("7a2d3700-bc9b-4e1b-9b1e-4042df891474"); // Using test user ID
+            const response = await getUserTickets("7a2d3700-bc9b-4e1b-9b1e-4042df891474");
             const ticketCount = response.data?.subscription_count || 0;
             setSubscribedCount(ticketCount);
         } catch (error) {
@@ -54,7 +52,6 @@ export default function Home() {
     fetchUserTickets();
   }, []);
 
-  // Get upcoming events (next 30 days)
   const getUpcomingEvents = () => {
     const now = new Date();
     const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -64,7 +61,6 @@ export default function Home() {
     });
   };
 
-  // Get events for a specific group
   const getGroupEvents = (group) => {
     return events.filter(event => event.group === group);
   };

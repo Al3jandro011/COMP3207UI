@@ -31,7 +31,6 @@ export default function Events() {
     fetchEvents();
   }, []);
 
-  // Filter events based on search term with null checks
   const filteredEvents = events.filter(event => {
     if (!searchTerm) return true;
     
@@ -83,7 +82,6 @@ export default function Events() {
               <EventTile
                 key={event.event_id}
                 id={event.event_id}
-
                 {...(event.img_url && { imageUrl: event.img_url })}
                 title={event.name || 'Untitled Event'}
                 description={event.desc || 'No description available'}

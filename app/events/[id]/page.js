@@ -4,7 +4,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { CalendarIcon, MapPinIcon, CalendarDaysIcon, LinkIcon, TicketIcon } from "@heroicons/react/24/outline";
-import { getEvent, getTicket, createTicket, deleteTicket } from "@/services/apiServices";
+import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent } from "@/services/apiServices";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from 'next/navigation';
@@ -61,7 +61,6 @@ export default function EventPage({ params }) {
 				setEvent(eventData);
 				setIsCreator(true);
 
-				// Check if user has a ticket
 				try {
 					console.log('Checking ticket for user...');
 					const ticketResponse = await getTicket({
@@ -70,14 +69,13 @@ export default function EventPage({ params }) {
 					});
 					console.log('Ticket response:', ticketResponse.data);
 					
-					// Find the ticket for this event
 					const ticket = ticketResponse.data.tickets?.find(
 						ticket => ticket.event_id === resolvedParams.id
 					);
 
 					if (ticket) {
 						setIsInTimetable(true);
-						setTicketId(ticket.ticket_id); // Store the ticket ID
+						setTicketId(ticket.ticket_id);
 						console.log('Found ticket:', ticket);
 					} else {
 						setIsInTimetable(false);
@@ -90,7 +88,6 @@ export default function EventPage({ params }) {
 					setTicketId(null);
 				}
 
-				// Get total tickets count
 				try {
 					const ticketCountResponse = await getTicket({
 						event_id: resolvedParams.id
@@ -120,7 +117,6 @@ export default function EventPage({ params }) {
 			setIsCreatingTicket(true);
 
 			if (!isInTimetable) {
-				// Create ticket
 				const response = await createTicket({
 					user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
 					event_id: resolvedParams.id,
@@ -129,11 +125,10 @@ export default function EventPage({ params }) {
 
 				if (response.data.result === "success") {
 					setIsInTimetable(true);
-					setTicketId(response.data.ticket_id); // Store the new ticket ID
+					setTicketId(response.data.ticket_id);
 					setTicketsLeft(prev => prev !== null ? prev - 1 : null);
 				}
 			} else {
-				// Delete ticket using ticket_id
 				if (!ticketId) {
 					throw new Error('No ticket ID found for deletion');
 				}
@@ -158,6 +153,7 @@ export default function EventPage({ params }) {
 		if (window.confirm("Are you sure you want to delete this event?")) {
 			try {
 				await deleteEvent({ 
+					user_id: "6f94e0c5-4ff4-456e-bba4-bfd3d665059b",
 					event_id: resolvedParams.id 
 				});
 				router.push("/events");
@@ -291,7 +287,7 @@ export default function EventPage({ params }) {
 					<p className="font-semibold text-gray-900 dark:text-gray-100">Location</p>
 					<div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 mb-4">
 						<MapPinIcon className="w-5 h-5" />
-						<span>Room {event.room_id}</span>
+						<span>{event.location_name}, Room {event.room_id}</span>
 					</div>
 					<MapComponent id={event.location_id} />
 				</div>
