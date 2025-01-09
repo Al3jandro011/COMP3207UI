@@ -4,7 +4,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { CalendarIcon, MapPinIcon, CalendarDaysIcon, LinkIcon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent, getUserDetails, getUserIdFromEmail } from "@/services/apiServices";
+import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent, getUserDetails, getUserIdFromEmail, updateTicket } from "@/services/apiServices";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from 'next/navigation';
@@ -39,7 +39,54 @@ function generateICSFile(event) {
 	return icsContent;
 }
 
-const ValidateModal = ({ isOpen, onClose }) => {
+const ValidateModal = ({ isOpen, onClose, eventCode, ticketId, setTicketHolders, eventId, setEvent }) => {
+	const [code, setCode] = useState('');
+	const [isValidating, setIsValidating] = useState(false);
+	const [error, setError] = useState('');
+
+	const handleClose = () => {
+		onClose();
+		setCode('');
+		setError('');
+	};
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		setError('');
+		setIsValidating(true);
+
+		try {
+			if (code === eventCode) {
+				await updateTicket({
+					ticket_id: ticketId,
+					validated: true
+				});
+
+				const ticketResponse = await getTicket({
+					event_id: eventId
+				});
+				setTicketHolders(ticketResponse.data.tickets || []);
+				
+				const currentTicket = ticketResponse.data.tickets?.find(t => t.ticket_id === ticketId);
+				if (currentTicket) {
+					setEvent(prev => ({
+						...prev,
+						validated: currentTicket.validated
+					}));
+				}
+				
+				handleClose();
+			} else {
+				setError('Invalid code. Please try again.');
+			}
+		} catch (error) {
+			console.error('Error validating ticket:', error);
+			setError('Failed to validate ticket. Please try again.');
+		} finally {
+			setIsValidating(false);
+		}
+	};
+
 	if (!isOpen) return null;
 
 	return (
@@ -47,44 +94,60 @@ const ValidateModal = ({ isOpen, onClose }) => {
 			<div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 space-y-4">
 				<div className="flex justify-between items-center">
 					<h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-						Validate Account
+						Validate Ticket
 					</h3>
 					<button
-						onClick={onClose}
+						onClick={handleClose}
 						className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
 					>
-						<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-						</svg>
+						<XMarkIcon className="w-6 h-6" />
 					</button>
 				</div>
 				
-				<div className="space-y-4">
-					<p className="text-gray-600 dark:text-gray-400">
-						Your account needs to be validated to access additional features.
-					</p>
-					<div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4">
-						<p className="text-sm text-gray-500 dark:text-gray-400">
-							Validation data will be shown here...
-						</p>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div>
+						<label className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+							Event Code
+						</label>
+						<input
+							type="text"
+							value={code}
+							onChange={(e) => setCode(e.target.value)}
+							required
+							className="w-full px-4 py-2 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100"
+							placeholder="Enter event code"
+						/>
 					</div>
-				</div>
 
-				<div className="flex justify-end pt-4">
-					<button
-						onClick={onClose}
-						className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 
-								 text-gray-900 dark:text-gray-100 rounded-lg transition-colors"
-					>
-						Close
-					</button>
-				</div>
+					{error && (
+						<p className="text-red-500 dark:text-red-400 text-sm">
+							{error}
+						</p>
+					)}
+
+					<div className="flex justify-end gap-4">
+						<button
+							type="button"
+							onClick={handleClose}
+							className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							disabled={isValidating}
+							className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-lg disabled:opacity-50"
+						>
+							{isValidating ? 'Validating...' : 'Validate'}
+						</button>
+					</div>
+				</form>
 			</div>
 		</div>
 	);
 };
 
-const CodeModal = ({ isOpen, onClose }) => {
+const CodeModal = ({ isOpen, onClose, eventCode }) => {
 	if (!isOpen) return null;
 
 	return (
@@ -98,9 +161,7 @@ const CodeModal = ({ isOpen, onClose }) => {
 						onClick={onClose}
 						className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
 					>
-						<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-						</svg>
+						<XMarkIcon className="w-6 h-6" />
 					</button>
 				</div>
 				
@@ -110,8 +171,7 @@ const CodeModal = ({ isOpen, onClose }) => {
 					</p>
 					<div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 text-center">
 						<p className="text-2xl font-mono font-semibold text-gray-900 dark:text-gray-100">
-							{/* This will be replaced with actual code from API */}
-							ABC123
+							{eventCode}
 						</p>
 					</div>
 				</div>
@@ -275,6 +335,10 @@ export default function EventPage({ params }) {
 					if (ticketResponse.data.subscribed) {
 						setIsInTimetable(true);
 						setTicketId(ticketResponse.data.ticket.ticket_id);
+						setEvent(prev => ({
+							...prev,
+							validated: ticketResponse.data.ticket.validated
+						}));
 					} else {
 						setIsInTimetable(false);
 						setTicketId(null);
@@ -401,11 +465,17 @@ export default function EventPage({ params }) {
 		<div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-3">
 			<ValidateModal 
 				isOpen={isValidateModalOpen} 
-				onClose={() => setIsValidateModalOpen(false)} 
+				onClose={() => setIsValidateModalOpen(false)}
+				eventCode={event?.code}
+				ticketId={ticketId}
+				setTicketHolders={setTicketHolders}
+				eventId={resolvedParams.id}
+				setEvent={setEvent}
 			/>
 			<CodeModal 
 				isOpen={isCodeModalOpen} 
-				onClose={() => setIsCodeModalOpen(false)} 
+				onClose={() => setIsCodeModalOpen(false)}
+				eventCode={event?.code || 'No code available'} 
 			/>
 			<AddTicketModal 
 				isOpen={isAddTicketModalOpen} 
@@ -452,18 +522,25 @@ export default function EventPage({ params }) {
 							disabled={isCreatingTicket || (ticketsLeft === 0 && !isInTimetable)}
 							className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
 								isInTimetable
-									? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500"
+									? event.tags.includes('Compulsory') 
+										? "hidden"
+										: "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500"
 									: ticketsLeft === 0
 										? "bg-gray-400 cursor-not-allowed"
 										: "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400"
 							} text-white focus:ring-2 focus:ring-cyan-500/50 focus:outline-none`}
 						>
 							{isCreatingTicket ? 'Processing...' : 
-								isInTimetable ? "Remove" : 
-								ticketsLeft === 0 ? 'Sold Out' : "Add to Timetable"}
+								isInTimetable 
+									? event.tags.includes('Compulsory') 
+										? null 
+										: "Remove" 
+									: ticketsLeft === 0 
+										? 'Sold Out' 
+										: "Add to Timetable"}
 						</button>
 
-						{isInTimetable && !isAuthorized && (
+						{isInTimetable && !isAuthorized && !event.validated && (
 							<button
 								onClick={() => setIsValidateModalOpen(true)}
 								className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 
