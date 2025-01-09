@@ -307,6 +307,7 @@ export default function EventPage({ params }) {
 	const [emailInput, setEmailInput] = useState('');
 	const [isProcessing, setIsProcessing] = useState(false);
 	const resolvedParams = React.use(params);
+	const [userEmail, setUserEmail] = useState('');
 
 	useEffect(() => {
 		const fetchEvent = async () => {
@@ -325,6 +326,7 @@ export default function EventPage({ params }) {
 				setIsCreator(true);
 				
 				setIsAuthorized(userResponse.data.user.auth || false);
+				setUserEmail(userResponse.data.user.email || '');
 
 				try {
 					const ticketResponse = await getTicket({
@@ -400,7 +402,7 @@ export default function EventPage({ params }) {
 				const response = await createTicket({
 					user_id: user?.id,
 					event_id: resolvedParams.id,
-					email: user?.email
+					email: userEmail
 				});
 
 				if (response.data.result === "success") {
