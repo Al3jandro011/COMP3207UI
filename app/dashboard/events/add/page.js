@@ -130,7 +130,7 @@ export default function Add() {
             };
 
             await createEvent(data);
-            router.push('/events');
+            router.back();
         } catch (error) {
             console.error('Error creating event:', error);
             alert(error.response?.data?.error || 'Failed to create event. Please try again.');

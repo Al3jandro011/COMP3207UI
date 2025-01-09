@@ -105,7 +105,6 @@ export default function Events() {
           </button>
         </div>
 
-        {/* Advanced Search Dropdown */}
         {isAdvancedSearchOpen && (
           <div className="absolute mt-2 w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 
                        dark:border-gray-700 p-4 space-y-4 z-30">

@@ -29,7 +29,7 @@ function generateICSFile(event) {
 		`DTEND:${endDate}`,
 		`SUMMARY:${event.name}`,
 		`DESCRIPTION:${event.desc}`,
-		`LOCATION: ${event.location_name}, Room ${event.room_id}`,
+		`LOCATION: ${event.location_name}, ${event.room_name}`,
 		'END:VEVENT',
 		'END:VCALENDAR'
 	].join('\r\n');
@@ -636,7 +636,7 @@ export default function EventPage({ params }) {
 					<p className="font-semibold text-gray-900 dark:text-gray-100">Location</p>
 					<div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 mb-4">
 						<MapPinIcon className="w-5 h-5" />
-						<span>{event.location_name}, Room {event.room_id}</span>
+						<span>{event.location_name}, {event.room_name}</span>
 					</div>
 					<MapComponent id={event.location_id} />
 				</div>
