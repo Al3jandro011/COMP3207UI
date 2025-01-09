@@ -8,9 +8,7 @@ import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent, getUserDe
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from 'next/navigation';
-
-const TEST_USER_ID = "836312bf-4d40-449e-a0ab-90c8c4f988a4";
-const TEST_USER_EMAIL = "admin@example.com";
+import { useAuth } from '@/contexts/AuthContext';
 
 const MapComponent = dynamic(() => import("@/components/maps/GoogleMap"), {
 	ssr: false,
@@ -293,6 +291,7 @@ const AddTicketModal = ({
 
 export default function EventPage({ params }) {
 	const router = useRouter();
+	const { user, loading: authLoading } = useAuth();
 	const [event, setEvent] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [isCreator, setIsCreator] = useState(false);
@@ -309,13 +308,14 @@ export default function EventPage({ params }) {
 	const [isProcessing, setIsProcessing] = useState(false);
 	const resolvedParams = React.use(params);
 
-
 	useEffect(() => {
 		const fetchEvent = async () => {
 			try {
+				if (!user) return;
+
 				const [eventResponse, userResponse] = await Promise.all([
 					getEvent({ event_id: resolvedParams.id }),
-					getUserDetails({ user_id: TEST_USER_ID })
+					getUserDetails({ user_id: user.id })
 				]);
 
 				const eventData = eventResponse.data;
@@ -329,7 +329,7 @@ export default function EventPage({ params }) {
 				try {
 					const ticketResponse = await getTicket({
 						event_id: resolvedParams.id,
-						user_id: TEST_USER_ID
+						user_id: user.id
 					});
 
 					if (ticketResponse.data.subscribed) {
@@ -369,8 +369,10 @@ export default function EventPage({ params }) {
 			}
 		};
 
-		fetchEvent();
-	}, [resolvedParams.id]);
+		if (!authLoading) {
+			fetchEvent();
+		}
+	}, [resolvedParams.id, user, authLoading]);
 
 	useEffect(() => {
 		const fetchTicketHolders = async () => {
@@ -396,9 +398,9 @@ export default function EventPage({ params }) {
 
 			if (!isInTimetable) {
 				const response = await createTicket({
-					user_id: TEST_USER_ID,
+					user_id: user?.id,
 					event_id: resolvedParams.id,
-					email: TEST_USER_EMAIL
+					email: user?.email
 				});
 
 				if (response.data.result === "success") {
@@ -431,7 +433,7 @@ export default function EventPage({ params }) {
 		if (window.confirm("Are you sure you want to delete this event?")) {
 			try {
 				await deleteEvent({ 
-					user_id: TEST_USER_ID,
+					user_id: user?.id,
 					event_id: resolvedParams.id 
 				});
 				router.push("/events");

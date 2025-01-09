@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusIcon, XMarkIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { createEvent, getLocations, getValidGroups, getAiResponse, getTags } from '@/services/apiServices';
+import { useAuth } from '@/contexts/AuthContext';
 
-const TEST_USER_ID = "836312bf-4d40-449e-a0ab-90c8c4f988a4";
-const TEST_USER_EMAIL = "admin@example.com";
 
 export default function Add() {
     const router = useRouter();
@@ -34,6 +33,7 @@ export default function Add() {
         endTime: '',
         maxSpaces: ''
     });
+	const { user, loading: authLoading } = useAuth();
 
     // Initialize date states with current date/time
     const [startDate, setStartDate] = useState(new Date());
@@ -119,7 +119,7 @@ export default function Add() {
         
         try {
             const data = {
-                user_id: TEST_USER_ID,
+                user_id: user?.id,
                 name: formData.name,
                 type: types,
                 desc: formData.description,

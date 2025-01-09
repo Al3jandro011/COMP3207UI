@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUserDetails, updateUser, getValidGroups } from '@/services/apiServices';
+import { useAuth } from '@/contexts/AuthContext';
 
-const TEST_USER_ID = "836312bf-4d40-449e-a0ab-90c8c4f988a4";
 
 export default function Account() {
   const router = useRouter();
@@ -15,12 +15,13 @@ export default function Account() {
   const [newPassword, setNewPassword] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateMessage, setUpdateMessage] = useState('');
+  const { user, loading: authLoading } = useAuth();
 
   // Fetch user details
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userResponse = await getUserDetails({ user_id: TEST_USER_ID });
+        const userResponse = await getUserDetails({ user_id: user?.id });
         setUserDetails(userResponse.data);
         setLoading(false);
       } catch (err) {
@@ -40,7 +41,7 @@ export default function Account() {
 
     try {
       const response = await updateUser({
-        user_id: TEST_USER_ID,
+        user_id: user?.id,
         email: userDetails.user.email,
         new_email: newEmail
       });
@@ -65,7 +66,7 @@ export default function Account() {
 
     try {
       await updateUser({
-        user_id: TEST_USER_ID,
+        user_id: user?.id,
         email: userDetails.user.email,
         password: newPassword
       });

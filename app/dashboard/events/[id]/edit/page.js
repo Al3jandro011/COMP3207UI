@@ -4,9 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusIcon, XMarkIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { getEvent, updateEvent, getLocations, getValidGroups, getAiResponse, getTags } from '@/services/apiServices';
+import { useAuth } from '@/contexts/AuthContext';
 
-const TEST_USER_ID = "836312bf-4d40-449e-a0ab-90c8c4f988a4";
-const TEST_USER_EMAIL = "admin@example.com";
 
 export default function EditEvent({ params }) {
     const router = useRouter();
@@ -26,6 +25,7 @@ export default function EditEvent({ params }) {
     const [selectedRoomCapacity, setSelectedRoomCapacity] = useState(null);
     const [selectedRoomId, setSelectedRoomId] = useState('');
     const resolvedParams = React.use(params);
+    const { user, loading: authLoading } = useAuth();
 
     // TODO: Make sure tags/types work
 
@@ -235,7 +235,7 @@ export default function EditEvent({ params }) {
         try {
             const data = {
                 event_id: resolvedParams.id,
-                user_id: TEST_USER_ID,
+                user_id: user?.id,
                 name: e.target.name.value,
                 tags: types,
                 desc: e.target.description.value,

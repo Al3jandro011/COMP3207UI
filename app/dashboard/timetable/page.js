@@ -5,7 +5,7 @@ import { PlusIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { getUserTickets, getEvent } from '@/services/apiServices';
 import { useRouter } from 'next/navigation';
 import EventTile from '@/components/EventTile';
-const TEST_USER_ID = '836312bf-4d40-449e-a0ab-90c8c4f988a4';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false
@@ -30,6 +30,7 @@ export default function Timetable() {
   const [isGoogleApiReady, setIsGoogleApiReady] = useState(false);
   const [isOutlookLinked, setIsOutlookLinked] = useState(false);
   const [timetableStatus, setTimetableStatus] = useState({});
+	const { user, loading: authLoading } = useAuth();
 
   // Load events on initial render
   useEffect(() => {
@@ -101,7 +102,7 @@ export default function Timetable() {
 
     try {
       // Get user's tickets
-      const testUserId = TEST_USER_ID;
+      const testUserId = user?.id;
       const ticketsResponse = await getUserTickets(testUserId);
       console.log('Tickets Response:', ticketsResponse.data);
       

@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getEvent, getTicket, createTicket } from '@/services/apiServices';
-const TEST_USER_ID = "7ef177e5-17ef-4baa-940a-83ccd4bb33c7";
-const TEST_USER_EMAIL = "test@example.com";
+import { useAuth } from '@/contexts/AuthContext';
 
 
 export default function EventTile({
@@ -19,6 +18,7 @@ export default function EventTile({
 }) {
     const [ticketsLeft, setTicketsLeft] = useState(null);
     const [loading, setLoading] = useState(true);
+	const { user, loading: authLoading } = useAuth();
 
     // Get tickets left count
     useEffect(() => {
