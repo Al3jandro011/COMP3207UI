@@ -5,8 +5,10 @@ import Link from 'next/link';
 import EventTile from '@/components/EventTile';
 import { MagnifyingGlassIcon, PlusIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { getAllEvents, getValidGroups } from '@/services/apiServices';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Events() {
+  const { user, loading: authLoading } = useAuth();
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -229,15 +231,17 @@ export default function Events() {
         </div>
       )}
 
-      <Link 
-        href="/dashboard/events/add" 
-        className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 px-4 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 
-                  rounded-full flex items-center justify-center shadow-lg hover:from-cyan-400 hover:to-blue-400 
-                  transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none group z-20"
-      >
-        <PlusIcon className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" />
-        <span className="ml-2 text-white font-medium hidden sm:inline">Add Event</span>
-      </Link>
+      {user?.auth && (
+        <Link 
+          href="/dashboard/events/add" 
+          className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 px-4 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 
+                    rounded-full flex items-center justify-center shadow-lg hover:from-cyan-400 hover:to-blue-400 
+                    transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none group z-20"
+        >
+          <PlusIcon className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" />
+          <span className="ml-2 text-white font-medium hidden sm:inline">Add Event</span>
+        </Link>
+      )}
     </div>
   );
 }

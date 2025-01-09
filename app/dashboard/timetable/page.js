@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { PlusIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline';
-import { getUserTickets, getEvent } from '@/services/apiServices';
+import { getUserTickets, getEvent, getValidGroups } from '@/services/apiServices';
 import { useRouter } from 'next/navigation';
 import EventTile from '@/components/EventTile';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,6 +31,7 @@ export default function Timetable() {
   const [isOutlookLinked, setIsOutlookLinked] = useState(false);
   const [timetableStatus, setTimetableStatus] = useState({});
 	const { user, loading: authLoading } = useAuth();
+  const [availableGroups, setAvailableGroups] = useState([]);
 
   useEffect(() => {
     searchEvents();
@@ -94,6 +95,56 @@ export default function Timetable() {
     };
   }, []);
 
+  // Add this useEffect to fetch groups when component mounts
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await getValidGroups();
+        // Transform the groups into the format needed for the dropdown
+        const groupOptions = response.data.groups.map(group => ({
+          value: group,
+          label: group
+        }));
+        setAvailableGroups(groupOptions);
+      } catch (error) {
+        console.error('Error fetching groups:', error);
+      }
+    };
+
+    fetchGroups();
+  }, []);
+
+  // Add this function to filter events based on criteria
+  const filterEvents = (events) => {
+    return events.filter(event => {
+        // Filter by compulsory status
+        if (compulsory.value !== 'all') {
+            const isCompulsory = event.tags?.includes('Compulsory');
+            if (compulsory.value === 'yes' && !isCompulsory) return false;
+            if (compulsory.value === 'no' && isCompulsory) return false;
+        }
+
+        // Filter by selected tags/groups
+        if (selectedTags.length > 0) {
+            const eventGroups = event.groups || [];
+            const hasMatchingGroup = selectedTags.some(tag => 
+                eventGroups.includes(tag.value)
+            );
+            if (!hasMatchingGroup) return false;
+        }
+
+        // Filter by date range
+        const eventStart = new Date(event.start_date);
+        const eventEnd = new Date(event.end_date);
+        
+        if (eventEnd < startDate || eventStart > endDate) {
+            return false;
+        }
+
+        return true;
+    });
+  };
+
   const searchEvents = async () => {
     setIsLoading(true);
     setError(null);
@@ -111,20 +162,27 @@ export default function Timetable() {
         return;
       }
 
-      const response = await getEvent({ 
-        event_id: userEventIds[0], 
-        event_ids: userEventIds
-      });
-      console.log('Events Response:', response.data);
+        // Get events for all tickets
+        const eventPromises = userEventIds.map(eventId => 
+            getEvent({ event_id: eventId })
+        );
 
-      const userEvents = Array.isArray(response.data) ? response.data : [response.data];
-      setEvents(userEvents.filter(Boolean));
-      
+        const eventResponses = await Promise.all(eventPromises);
+        const allEvents = eventResponses.map(response => response.data)
+            .filter(Boolean); // Filter out any null/undefined events
+
+        // Apply filters to the events
+        const filteredEvents = filterEvents(allEvents);
+        
+        console.log('All Events:', allEvents);
+        console.log('Filtered Events:', filteredEvents);
+        setEvents(filteredEvents);
+        
     } catch (err) {
-      console.error('Error in searchEvents:', err);
-      setError('Failed to load events. Please try again.');
+        console.error('Error in searchEvents:', err);
+        setError('Failed to load events. Please try again.');
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
   };
 
@@ -134,25 +192,7 @@ export default function Timetable() {
     { value: 'all', label: 'All' }
   ];
 
-  const availableTags = [
-    { value: 'comp3200', label: 'COMP3200' },
-    { value: 'comp3227', label: 'COMP3227' },
-    { value: 'comp3228', label: 'COMP3228' },
-    { value: 'comp3229', label: 'COMP3229' },
-    { value: 'comp3230', label: 'COMP3230' },
-    { value: 'comp3231', label: 'COMP3231' },
-    { value: 'comp3232', label: 'COMP3232' },
-    { value: 'comp3233', label: 'COMP3233' },
-    { value: 'comp3234', label: 'COMP3234' },
-    { value: 'comp3235', label: 'COMP3235' },
-    { value: 'badminton', label: 'Badminton' },
-    { value: 'basketball', label: 'Basketball' },
-    { value: 'football', label: 'Football' },
-    { value: 'volleyball', label: 'Volleyball' },
-    { value: 'tennis', label: 'Tennis' },
-    { value: 'tabletennis', label: 'Table Tennis' },
-    { value: 'chess', label: 'Chess' }
-  ];
+  const availableTags = availableGroups;
 
   const customSelectStyles = {
     control: (base, state) => ({
@@ -417,7 +457,7 @@ export default function Timetable() {
               {isTagDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700/50 z-10">
                   <div className="max-h-[200px] overflow-y-auto">
-                    {availableTags
+                    {availableGroups
                       .filter(tag => !selectedTags.find(t => t.value === tag.value))
                       .map(tag => (
                         <div 
