@@ -81,9 +81,7 @@ export default function Account() {
   };
 
   const handleLogout = () => {
-    // Clear any stored user data/tokens
     localStorage.clear();
-    // Redirect to home page
     router.push('/');
   };
 

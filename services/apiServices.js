@@ -135,11 +135,6 @@ export const updateTicket = (data) => {
 	});
 };
 
-export const registerUser = async (userData) => {
-	try {
-		const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
-		return response;
-	} catch (error) {
-		throw error;
-	}
+export const registerUser = (userData) => {
+	return api.post(`/register_user?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, userData);
 };

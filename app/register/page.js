@@ -24,16 +24,22 @@ export default function Register() {
     }
 
     try {
-      const response = await registerUser({ email, password });
-      const userData = response.data;
+      const response = await registerUser({ 
+        email, 
+        password,
+      });
       
-      console.log('Register response:', userData);
+      console.log('Register response:', response.data);
       
-      login(userData);
-      router.push('/dashboard');
+      if (response.data && response.data.user_id) {
+        login({id: response.data.user_id, auth: response.data.auth});
+        router.push('/dashboard');
+      } else {
+        throw new Error('Invalid response data');
+      }
     } catch (err) {
       console.error('Registration error:', err);
-      setError(err.response?.data?.message || 'Failed to register');
+      setError(err.response?.data?.error || 'Failed to register');
     }
   };
 
