@@ -89,31 +89,30 @@ export const getUserDetails = (data) => {
 	});
 };
 
-export const updateUser = (data) => {
-	// Create request body with all possible fields
-	const requestBody = {
-		user_id: data.user_id,
-		email: data.email,
-		new_email: data.new_email,
-		password: data.password,
-		auth: data.auth,
-		groups: data.groups // Make sure groups is included
-	};
+// export const updateUser = (data) => {
+// 	// Create request body with all possible fields
+// 	const requestBody = {
+// 		user_id: data.user_id,
+// 		email: data.email,
+// 		new_email: data.new_email,
+// 		password: data.password,
+// 		auth: data.auth,
+// 		groups: data.groups // Make sure groups is included
+// 	};
 
-	// Remove undefined fields
-	Object.keys(requestBody).forEach(key => 
-		requestBody[key] === undefined && delete requestBody[key]
-	);
+// 	// Remove undefined fields
+// 	Object.keys(requestBody).forEach(key => 
+// 		requestBody[key] === undefined && delete requestBody[key]
+// 	);
 
-	return api.post(`/update_user?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, requestBody);
-};
+// 	return api.post(`/update_user?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, requestBody);
+// };
 
 // Add this new function
 export const getValidGroups = () => {
 	return api.get(`/get_valid_groups?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
 };
 
-<<<<<<< Updated upstream
 export const getTags = () => {
 	return api.get(`/get_valid_tags?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
 };
@@ -139,7 +138,6 @@ export const updateTicket = (data) => {
 export const registerUser = (userData) => {
 	return api.post(`/register_user?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, userData);
 };
-=======
 // Get account details
 export const getAccountDetails = (data) => {
 	return api.post(`/get_account_details?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, {
@@ -166,4 +164,3 @@ export const updateUser = (data) => {
 
 	return api.post(`/update_user?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, updateData);
 };
->>>>>>> Stashed changes
