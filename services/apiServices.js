@@ -127,6 +127,14 @@ export const getUserIdFromEmail = (emails) => {
 	return api.post(`/get_user_id_from_email?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, emailData);
 };
 
+// Add this function to update ticket validation status
+export const updateTicket = (data) => {
+	return api.post(`/update_ticket?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, {
+		ticket_id: data.ticket_id,
+		validated: data.validated
+	});
+};
+
 export const registerUser = async (userData) => {
 	try {
 		const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
