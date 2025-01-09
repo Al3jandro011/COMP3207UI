@@ -131,3 +131,11 @@ export const getAccountDetails = (data) => {
 		user_id: data.user_id
 	});
 };
+
+export const validateTicket = (data) => {
+	return api.post(`/validate_ticket?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, {
+		ticket_id: data.ticket_id,
+		user_id: data.user_id,
+		code: data.code
+	});
+};

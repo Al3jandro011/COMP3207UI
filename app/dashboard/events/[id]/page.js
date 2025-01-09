@@ -4,7 +4,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { CalendarIcon, MapPinIcon, CalendarDaysIcon, LinkIcon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent, getUserDetails, getUserIdFromEmail, updateTicket } from "@/services/apiServices";
+import { getEvent, getTicket, createTicket, deleteTicket, deleteEvent, getUserDetails, getUserIdFromEmail, updateTicket, validateTicket } from "@/services/apiServices";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from 'next/navigation';
@@ -41,6 +41,7 @@ const ValidateModal = ({ isOpen, onClose, eventCode, ticketId, setTicketHolders,
 	const [code, setCode] = useState('');
 	const [isValidating, setIsValidating] = useState(false);
 	const [error, setError] = useState('');
+	const { user, loading: authLoading } = useAuth();
 
 	const handleClose = () => {
 		onClose();
@@ -55,9 +56,10 @@ const ValidateModal = ({ isOpen, onClose, eventCode, ticketId, setTicketHolders,
 
 		try {
 			if (code === eventCode) {
-				await updateTicket({
+				await validateTicket({
 					ticket_id: ticketId,
-					validated: true
+					user_id: user?.id,
+					code: eventCode,
 				});
 
 				const ticketResponse = await getTicket({
@@ -452,6 +454,33 @@ export default function EventPage({ params }) {
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
+	};
+
+	const handleValidateTicket = async () => {
+		if (!ticketId) {
+			alert('No ticket ID found for validation.');
+			return;
+		}
+
+		const code = prompt("Please enter the validation code:"); // Prompt for the validation code
+
+		if (!code) {
+			alert('Validation code is required.');
+			return;
+		}
+
+		try {
+			const response = await validateTicket({
+				ticket_id: ticketId,
+				user_id: user?.id, // Use the current user's ID
+				code: code // Pass the code to the API
+			});
+			alert(response.data.body.result); // Show success message
+			// Optionally, you can refresh the ticket holders or update the UI as needed
+		} catch (error) {
+			console.error('Error validating ticket:', error);
+			alert(error.response?.data?.error || 'Failed to validate ticket');
+		}
 	};
 
 	if (loading) {

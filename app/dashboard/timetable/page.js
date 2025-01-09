@@ -274,33 +274,53 @@ export default function Timetable() {
     }
   };
 
-  const handleLinkOutlook = () => {
+  const handleLinkOutlook = async () => {
     try {
-      const outlookUrl = new URL('https://outlook.live.com/calendar/0/');
-      
-      const width = 800;
-      const height = 600;
-      const left = (window.innerWidth - width) / 2 + window.screenX;
-      const top = (window.innerHeight - height) / 2 + window.screenY;
+        const outlookUrl = new URL('https://outlook.live.com/calendar/0/deeplink/compose');
+        
+        // Create a list of events to add to the calendar
+        const eventsToAdd = events.map(event => {
+            const start = new Date(event.start_date || event.startTime);
+            const end = new Date(event.end_date || event.endTime);
+            return {
+                subject: event.name,
+                start: start.toISOString(),
+                end: end.toISOString(),
+                body: event.desc || '',
+                location: event.location || ''
+            };
+        });
 
-      const popup = window.open(
-        outlookUrl.toString(),
-        'OutlookCalendar',
-        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes`
-      );
+        // Construct the URL for adding multiple events
+        const params = eventsToAdd.map(event => {
+            return `subject=${encodeURIComponent(event.subject)}&startdt=${event.start}&enddt=${event.end}&body=${encodeURIComponent(event.body)}&location=${encodeURIComponent(event.location)}`;
+        }).join('&');
 
-      if (popup) {
-        setIsOutlookLinked(true);
-        localStorage.setItem('outlookLinked', 'true');
-        console.log('Outlook calendar linked successfully');
-      } else {
-        throw new Error('Popup was blocked. Please allow popups for this site.');
-      }
+        outlookUrl.search = params;
+
+        const width = 800;
+        const height = 600;
+        const left = (window.innerWidth - width) / 2 + window.screenX;
+        const top = (window.innerHeight - height) / 2 + window.screenY;
+
+        const popup = window.open(
+            outlookUrl.toString(),
+            'OutlookCalendar',
+            `width=${width},height=${height},left=${left},top=${top},scrollbars=yes`
+        );
+
+        if (popup) {
+            setIsOutlookLinked(true);
+            localStorage.setItem('outlookLinked', 'true');
+            console.log('Outlook calendar linked successfully');
+        } else {
+            throw new Error('Popup was blocked. Please allow popups for this site.');
+        }
     } catch (error) {
-      console.error('Error linking Outlook:', error.message);
-      setIsOutlookLinked(false);
-      localStorage.removeItem('outlookLinked');
-      alert(error.message || 'Failed to link Outlook. Please try again.');
+        console.error('Error linking Outlook:', error.message);
+        setIsOutlookLinked(false);
+        localStorage.removeItem('outlookLinked');
+        alert(error.message || 'Failed to link Outlook. Please try again.');
     }
   };
 
@@ -461,18 +481,15 @@ export default function Timetable() {
             {isLoading ? 'Searching...' : 'Search Events'}
           </button>
           
-          <button
+          {/* <button
             onClick={handleLinkOutlook}
             className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:outline-none flex items-center justify-center gap-2"
           >
             <LinkIcon className="w-4 h-4" />
             <span className="whitespace-nowrap">
-              {isOutlookLinked 
-                ? 'Linked to Outlook' 
-                : 'Link to Outlook'
-              }
+                Link All Events to Outlook
             </span>
-          </button>
+          </button> */}
         </div>
       </div>
 
