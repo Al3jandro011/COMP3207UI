@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { PlusIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline';
-import { makeCalendar } from '@/services/apiServices';
+import { getUserTickets, getEvent } from '@/services/apiServices';
 import { useRouter } from 'next/navigation';
 import EventTile from '@/components/EventTile';
+const TEST_USER_ID = '836312bf-4d40-449e-a0ab-90c8c4f988a4';
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false
@@ -14,14 +15,14 @@ export default function Timetable() {
   const router = useRouter();
 
   const today = new Date();
-  const nextMonth = new Date(today);
-  nextMonth.setMonth(today.getMonth() + 1);
+  const startOfYear = new Date(today.getFullYear(), 0, 1); // January 1st of current year
+  const endOfYear = new Date(today.getFullYear(), 11, 31); // December 31st of current year
 
   const [compulsory, setCompulsory] = useState({ value: 'all', label: 'All' });
   const [selectedTags, setSelectedTags] = useState([]);
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(nextMonth);
+  const [startDate, setStartDate] = useState(startOfYear);
+  const [endDate, setEndDate] = useState(endOfYear);
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -99,21 +100,34 @@ export default function Timetable() {
     setError(null);
 
     try {
-      const filters = [
-        compulsory.value !== 'all' ? `compulsory=${compulsory.value}` : null,
-        ...selectedTags.map(tag => tag.value)
-      ].filter(Boolean);
+      // Get user's tickets
+      const testUserId = TEST_USER_ID;
+      const ticketsResponse = await getUserTickets(testUserId);
+      console.log('Tickets Response:', ticketsResponse.data);
+      
+      // Get event IDs from subscriptions
+      const userEventIds = ticketsResponse.data.subscriptions?.map(sub => sub.event_id) || [];
+      console.log('User event IDs:', userEventIds);
 
-      const response = await makeCalendar({
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
-        filters: filters
+      if (userEventIds.length === 0) {
+        setEvents([]); // No tickets, so no events to show
+        return;
+      }
+
+      // Get only the events that the user has tickets for
+      const response = await getEvent({ 
+        event_id: userEventIds[0], // For single event
+        event_ids: userEventIds // For multiple events
       });
+      console.log('Events Response:', response.data);
 
-      setEvents(response.data.results || []);
+      // Set the events from the response
+      const userEvents = Array.isArray(response.data) ? response.data : [response.data];
+      setEvents(userEvents.filter(Boolean)); // Filter out any null/undefined events
+      
     } catch (err) {
+      console.error('Error in searchEvents:', err);
       setError('Failed to load events. Please try again.');
-      console.error('Error loading events:', err);
     } finally {
       setIsLoading(false);
     }
