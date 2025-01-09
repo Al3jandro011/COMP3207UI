@@ -480,16 +480,6 @@ export default function Timetable() {
           >
             {isLoading ? 'Searching...' : 'Search Events'}
           </button>
-          
-          {/* <button
-            onClick={handleLinkOutlook}
-            className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:outline-none flex items-center justify-center gap-2"
-          >
-            <LinkIcon className="w-4 h-4" />
-            <span className="whitespace-nowrap">
-                Link All Events to Outlook
-            </span>
-          </button> */}
         </div>
       </div>
 

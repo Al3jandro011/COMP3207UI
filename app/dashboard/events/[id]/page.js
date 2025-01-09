@@ -462,7 +462,7 @@ export default function EventPage({ params }) {
 			return;
 		}
 
-		const code = prompt("Please enter the validation code:"); // Prompt for the validation code
+		const code = prompt("Please enter the validation code:")
 
 		if (!code) {
 			alert('Validation code is required.');
@@ -472,11 +472,10 @@ export default function EventPage({ params }) {
 		try {
 			const response = await validateTicket({
 				ticket_id: ticketId,
-				user_id: user?.id, // Use the current user's ID
-				code: code // Pass the code to the API
+				user_id: user?.id,
+				code: code
 			});
-			alert(response.data.body.result); // Show success message
-			// Optionally, you can refresh the ticket holders or update the UI as needed
+			alert(response.data.body.result);
 		} catch (error) {
 			console.error('Error validating ticket:', error);
 			alert(error.response?.data?.error || 'Failed to validate ticket');

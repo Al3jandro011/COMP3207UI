@@ -146,21 +146,15 @@ export default function Add() {
             
             if (response && response.data.result) {
                 try {
-                    // Clean and format the JSON string
                     let jsonString = response.data.result;
-                    
-                    // Find JSON object between curly braces
                     const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
                     if (!jsonMatch) {
                         throw new Error('No JSON object found in response');
                     }
                     
                     jsonString = jsonMatch[0]
-                        // Replace single quotes with double quotes
                         .replace(/'/g, '"')
-                        // Ensure property names are double-quoted
                         .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
-                        // Remove any trailing commas before closing brackets
                         .replace(/,(\s*[}\]])/g, '$1');
 
                     console.log('Cleaned JSON string:', jsonString);
