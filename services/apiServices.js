@@ -19,6 +19,11 @@ export const createEvent = (data) => {
 	return api.post(`/create_event?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
 };
 
+export const loginUser = (data) => {
+	return api.post(`/login_user?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
+
+};
+
 export const getEvent = (data) => {
 	return api.post(`/get_event?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, data);
 };
@@ -105,4 +110,13 @@ export const getValidGroups = () => {
 
 export const getTags = () => {
 	return api.get(`/get_valid_tags?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
+};
+
+export const registerUser = async (userData) => {
+	try {
+		const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
+		return response;
+	} catch (error) {
+		throw error;
+	}
 };

@@ -11,7 +11,7 @@ export default function Sidebar() {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	const linkClass = (path) => {
-		const isActive = pathname === path || pathname.startsWith(`${path}/`);
+		const isActive = pathname === path;
 		return `flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
 			isActive 
 				? "bg-gradient-to-r from-cyan-500/10 to-cyan-500/20 text-cyan-400 font-medium border-r-2 border-cyan-400" 
@@ -32,7 +32,7 @@ export default function Sidebar() {
 	return (
 		<>
 			<div className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800/50 flex items-center justify-between px-4 lg:hidden z-50">
-				<Link href="/" className="flex items-center space-x-2">
+				<Link href="/dashboard" className="flex items-center space-x-2">
 					<div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
 						<span className="text-white font-bold text-xl">E</span>
 					</div>
@@ -55,7 +55,7 @@ export default function Sidebar() {
 			<aside className={`fixed top-0 left-0 h-screen w-72 bg-white dark:bg-gray-900 shadow-2xl border-r border-gray-200 dark:border-gray-800/50 transition-transform duration-300 z-40
 				${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
 				<div className="p-6 border-b border-gray-200 dark:border-gray-800/50">
-					<Link href="/" className="flex items-center space-x-2">
+					<Link href="/dashboard" className="flex items-center space-x-2">
 						<div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
 							<span className="text-white font-bold text-xl">E</span>
 						</div>
@@ -74,8 +74,8 @@ export default function Sidebar() {
 					<ul className="space-y-1.5">
 						<li>
 							<Link 
-								href="/" 
-								className={linkClass("/")}
+								href="/dashboard" 
+								className={linkClass("/dashboard")}
 								onClick={handleLinkClick}
 							>
 								<HomeIcon className="w-5 h-5" />
@@ -84,8 +84,8 @@ export default function Sidebar() {
 						</li>
 						<li>
 							<Link 
-								href="/timetable" 
-								className={linkClass("/timetable")}
+								href="/dashboard/timetable" 
+								className={linkClass("/dashboard/timetable")}
 								onClick={handleLinkClick}
 							>
 								<CalendarIcon className="w-5 h-5" />
@@ -94,8 +94,8 @@ export default function Sidebar() {
 						</li>
 						<li>
 							<Link 
-								href="/events" 
-								className={linkClass("/events")}
+								href="/dashboard/events" 
+								className={linkClass("/dashboard/events")}
 								onClick={handleLinkClick}
 							>
 								<BuildingOfficeIcon className="w-5 h-5" />
@@ -107,8 +107,8 @@ export default function Sidebar() {
 
 				<div className="absolute bottom-0 w-full border-t border-gray-200 dark:border-gray-800/50">
 					<Link 
-						href="/account" 
-						className={`${linkClass("/account")} hover:bg-gray-800`}
+						href="/dashboard/account" 
+						className={`${linkClass("/dashboard/account")} hover:bg-gray-800`}
 						onClick={handleLinkClick}
 					>
 						<UserIcon className="w-5 h-5" />
