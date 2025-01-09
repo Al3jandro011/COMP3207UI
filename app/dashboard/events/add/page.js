@@ -35,14 +35,12 @@ export default function Add() {
     });
 	const { user, loading: authLoading } = useAuth();
 
-    // Initialize date states with current date/time
     const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date(Date.now() + 3600000)); // Default 1 hour duration
+    const [endDate, setEndDate] = useState(new Date(Date.now() + 3600000)); 
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch locations, groups, and tags
                 const [locationsRes, groupsRes, tagsRes] = await Promise.all([
                     getLocations(),
                     getValidGroups(),
@@ -54,7 +52,6 @@ export default function Add() {
                 setAvailableGroups(groupsRes.data.groups || []);
                 setAvailableTags(tagsRes.data.tags || []);
 
-                // Initialize types with first available tag if exists
                 if (tagsRes.data.tags && tagsRes.data.tags.length > 0) {
                     setTypes([tagsRes.data.tags[0]]);
                 }

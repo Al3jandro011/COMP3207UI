@@ -17,7 +17,6 @@ export default function Account() {
   const [updateMessage, setUpdateMessage] = useState('');
   const { user, loading: authLoading } = useAuth();
 
-  // Fetch user details
   useEffect(() => {
     const fetchData = async () => {
       try {

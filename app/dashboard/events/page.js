@@ -223,6 +223,7 @@ export default function Events() {
               {...(event.img_url && { imageUrl: event.img_url })}
               title={event.name || 'Untitled Event'}
               description={event.desc || 'No description available'}
+              tags={event.tags}
             />
           ))}
         </div>

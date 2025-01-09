@@ -26,18 +26,12 @@ export default function EditEvent({ params }) {
     const [selectedRoomId, setSelectedRoomId] = useState('');
     const resolvedParams = React.use(params);
     const { user, loading: authLoading } = useAuth();
-
-    // TODO: Make sure tags/types work
-
-
-    // Initialize date states with current date/time
     const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date(Date.now() + 3600000)); // Default 1 hour duration
+    const [endDate, setEndDate] = useState(new Date(Date.now() + 3600000));
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch locations, groups, tags and event
                 const [locationsRes, groupsRes, tagsRes, eventRes] = await Promise.all([
                     getLocations(),
                     getValidGroups(),
@@ -52,30 +46,25 @@ export default function EditEvent({ params }) {
 
                 const eventData = eventRes.data;
                 
-                // Set event data
                 setEvent(eventData);
                 setGroups(eventData.groups || ['']);
                 
-                // Initialize types with the event type if it exists, otherwise use first available tag
                 if (eventData.type) {
                     setTypes([eventData.type]);
                 } else if (tagsRes.data.tags && tagsRes.data.tags.length > 0) {
                     setTypes([tagsRes.data.tags[0]]);
                 }
 
-                // Set dates from event data with fallback to current time
                 setStartDate(eventData.start_date ? new Date(eventData.start_date) : new Date());
                 setEndDate(eventData.end_date ? new Date(eventData.end_date) : new Date(Date.now() + 3600000));
                 setSelectedRoomId(eventData.room_id);
 
-                // Set building and room
                 const building = locations.find(loc => loc.location_id === eventData.location_id);
                 if (building) {
                     setSelectedBuilding(building.location_name);
                     setSelectedBuildingId(building.location_id);
                     setRooms(building.rooms || []);
                     
-                    // Set initial room capacity
                     const selectedRoom = building.rooms?.find(room => room.room_id === eventData.room_id);
                     if (selectedRoom) {
                         setSelectedRoomCapacity(selectedRoom.capacity);
@@ -100,7 +89,7 @@ export default function EditEvent({ params }) {
         if (selectedBuildingData) {
             setSelectedBuildingId(selectedBuildingData.location_id);
             setRooms(selectedBuildingData.rooms || []);
-            setSelectedRoomCapacity(null); // Reset room capacity when building changes
+            setSelectedRoomCapacity(null);
         } else {
             setSelectedBuildingId('');
             setRooms([]);
@@ -165,14 +154,12 @@ export default function EditEvent({ params }) {
                     const jsonString = jsonMatch[0];
                     const eventData = JSON.parse(jsonString);
                     
-                    // Validate location
                     const locationExists = locations.includes(eventData.room_id);
                     if (!locationExists) {
                         alert(`Location "${eventData.room_id}" is not available. Please select from: ${locations.join(', ')}`);
                         eventData.room_id = '';
                     }
 
-                    // Validate groups
                     let validGroups = [];
                     let invalidGroups = [];
                     if (eventData.groups && Array.isArray(eventData.groups)) {
@@ -206,11 +193,9 @@ export default function EditEvent({ params }) {
                         max_tick: eventData.max_tick || event.max_tick
                     });
 
-                    // Update dates
                     if (eventData.start_date) setStartDate(new Date(eventData.start_date));
                     if (eventData.end_date) setEndDate(new Date(eventData.end_date));
 
-                    // Only set valid groups
                     if (validGroups.length > 0) {
                         setGroups(validGroups);
                     }
@@ -264,7 +249,6 @@ export default function EditEvent({ params }) {
         return <div className="p-8 text-gray-400">Event not found</div>;
     }
 
-    // Return the same form structure as Add Event, but with defaultValue/value set from event data
     return (
         <div className="p-4 sm:p-8 max-w-7xl mx-auto">
             <div className="mb-6 sm:mb-8">

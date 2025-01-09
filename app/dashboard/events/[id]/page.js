@@ -515,7 +515,7 @@ export default function EventPage({ params }) {
 						>
 							<div className="flex items-center gap-2">
 								<CalendarDaysIcon className="w-5 h-5" />
-								<span>Add to Calendar</span>
+								<span>Export Event to Calendar</span>
 							</div>
 						</button>
 

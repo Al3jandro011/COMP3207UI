@@ -15,8 +15,8 @@ export default function Timetable() {
   const router = useRouter();
 
   const today = new Date();
-  const startOfYear = new Date(today.getFullYear(), 0, 1); // January 1st of current year
-  const endOfYear = new Date(today.getFullYear(), 11, 31); // December 31st of current year
+  const startOfYear = new Date(today.getFullYear(), 0, 1);
+  const endOfYear = new Date(today.getFullYear(), 11, 31);
 
   const [compulsory, setCompulsory] = useState({ value: 'all', label: 'All' });
   const [selectedTags, setSelectedTags] = useState([]);
@@ -32,12 +32,10 @@ export default function Timetable() {
   const [timetableStatus, setTimetableStatus] = useState({});
 	const { user, loading: authLoading } = useAuth();
 
-  // Load events on initial render
   useEffect(() => {
     searchEvents();
   }, []);
 
-  // Add this useEffect near the top of your component
   useEffect(() => {
     const loadGoogleApi = () => {
       return new Promise((resolve, reject) => {
@@ -101,30 +99,26 @@ export default function Timetable() {
     setError(null);
 
     try {
-      // Get user's tickets
       const testUserId = user?.id;
       const ticketsResponse = await getUserTickets(testUserId);
       console.log('Tickets Response:', ticketsResponse.data);
       
-      // Get event IDs from subscriptions
       const userEventIds = ticketsResponse.data.subscriptions?.map(sub => sub.event_id) || [];
       console.log('User event IDs:', userEventIds);
 
       if (userEventIds.length === 0) {
-        setEvents([]); // No tickets, so no events to show
+        setEvents([]);
         return;
       }
 
-      // Get only the events that the user has tickets for
       const response = await getEvent({ 
-        event_id: userEventIds[0], // For single event
-        event_ids: userEventIds // For multiple events
+        event_id: userEventIds[0], 
+        event_ids: userEventIds
       });
       console.log('Events Response:', response.data);
 
-      // Set the events from the response
       const userEvents = Array.isArray(response.data) ? response.data : [response.data];
-      setEvents(userEvents.filter(Boolean)); // Filter out any null/undefined events
+      setEvents(userEvents.filter(Boolean));
       
     } catch (err) {
       console.error('Error in searchEvents:', err);
@@ -441,7 +435,6 @@ export default function Timetable() {
           </div>
         </div>
 
-        {/* Search button */}
         <div className="mt-6 flex flex-col sm:flex-row gap-4">
           <button
             onClick={searchEvents}
@@ -450,22 +443,6 @@ export default function Timetable() {
           >
             {isLoading ? 'Searching...' : 'Search Events'}
           </button>
-          
-          {/* <button
-            onClick={handleLinkCalendar}
-            disabled={!isGoogleApiReady}
-            className={`w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-lg text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none flex items-center justify-center gap-2 ${!isGoogleApiReady ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <LinkIcon className="w-4 h-4" />
-            <span className="whitespace-nowrap">
-              {!isGoogleApiReady 
-                ? 'Loading...' 
-                : isCalendarLinked 
-                  ? 'Linked to Google Calendar' 
-                  : 'Link to Google Calendar'
-              }
-            </span>
-          </button> */}
           
           <button
             onClick={handleLinkOutlook}
@@ -499,6 +476,7 @@ export default function Timetable() {
                 title={event.name}
                 description={event.desc}
                 onTimetableToggle={(eventId) => handleTimetableToggle(eventId)}
+                tags={event.tags}
               />
             ))}
           </div>

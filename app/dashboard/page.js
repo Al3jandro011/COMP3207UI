@@ -99,11 +99,9 @@ export default function Home() {
     const now = new Date();
     const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     
-    // Get all groups that have events
     const groupsWithEvents = Object.entries(eventsByGroup).filter(([_, events]) => events.length > 0);
     if (groupsWithEvents.length === 0) return { group: 'No Group', count: 0 };
     
-    // Randomly select a group
     const randomIndex = Math.floor(Math.random() * groupsWithEvents.length);
     const [groupName, events] = groupsWithEvents[randomIndex];
     
