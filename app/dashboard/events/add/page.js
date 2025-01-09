@@ -31,7 +31,7 @@ export default function Add() {
         location: '',
         startTime: '',
         endTime: '',
-        maxSpaces: ''
+        max_tick: ''
     });
 	const { user, loading: authLoading } = useAuth();
 
@@ -124,7 +124,7 @@ export default function Add() {
                 room_id: selectedRoomId,
                 start_date: startDate.toISOString(),
                 end_date: endDate.toISOString(),
-                max_tick: parseInt(formData.maxSpaces, 10),
+                max_tick: parseInt(formData.max_tick, 10),
                 groups: groups,
                 img_url: formData.image,
             };
@@ -146,13 +146,27 @@ export default function Add() {
             
             if (response && response.data.result) {
                 try {
-                    const jsonMatch = response.data.result.match(/\{[\s\S]*\}/);
+                    // Clean and format the JSON string
+                    let jsonString = response.data.result;
+                    
+                    // Find JSON object between curly braces
+                    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
                     if (!jsonMatch) {
                         throw new Error('No JSON object found in response');
                     }
                     
-                    const jsonString = jsonMatch[0];
+                    jsonString = jsonMatch[0]
+                        // Replace single quotes with double quotes
+                        .replace(/'/g, '"')
+                        // Ensure property names are double-quoted
+                        .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
+                        // Remove any trailing commas before closing brackets
+                        .replace(/,(\s*[}\]])/g, '$1');
+
+                    console.log('Cleaned JSON string:', jsonString);
+                    
                     const eventData = JSON.parse(jsonString);
+                    console.log('Parsed event data:', eventData);
                     
                     const buildingMatch = eventData.location_id.match(/\(([^)]+)\)/);
                     const buildingCode = buildingMatch ? buildingMatch[1] : eventData.location_id;
@@ -216,7 +230,7 @@ export default function Add() {
                         location: building?.location_name || '',
                         startTime: formatDate(eventData.start_date) || '',
                         endTime: formatDate(eventData.end_date) || '',
-                        maxSpaces: eventData.max_tick?.toString() || ''
+                        max_tick: eventData.max_tick?.toString() || ''
                     });
 
                     if (validGroups.length > 0) {
@@ -229,7 +243,8 @@ export default function Add() {
 
                 } catch (error) {
                     console.error('Error parsing AI response:', error);
-                    alert('Failed to parse the AI response. Please try again.');
+                    console.log('Problematic JSON string:', response.data.result);
+                    alert('Failed to parse the AI response. Please try rephrasing your request.');
                 }
             }
         } catch (error) {
@@ -474,10 +489,12 @@ export default function Add() {
                         Maximum Spaces <span className="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <input 
-                        name="maxSpaces" 
+                        name="max_tick" 
                         type="number" 
                         min="1" 
                         required 
+                        value={formData.max_tick}
+                        onChange={(e) => setFormData(prev => ({ ...prev, max_tick: e.target.value }))}
                         className="w-full px-4 py-3 bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-200"
                     />
                 </div>
