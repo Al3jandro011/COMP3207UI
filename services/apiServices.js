@@ -113,6 +113,7 @@ export const getValidGroups = () => {
 	return api.get(`/get_valid_groups?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
 };
 
+<<<<<<< Updated upstream
 export const getTags = () => {
 	return api.get(`/get_valid_tags?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`);
 };
@@ -138,3 +139,31 @@ export const updateTicket = (data) => {
 export const registerUser = (userData) => {
 	return api.post(`/register_user?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, userData);
 };
+=======
+// Get account details
+export const getAccountDetails = (data) => {
+	return api.post(`/get_account_details?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, {
+		user_id: data.user_id
+	});
+};
+
+// Update user details
+export const updateUser = (data) => {
+	const updateData = {
+		user_id: data.user_id
+	};
+
+	// Only include fields that are provided
+	if (data.new_email) {
+		updateData.new_email = data.new_email;
+	}
+	if (data.password) {
+		updateData.password = data.password;
+	}
+	if (typeof data.auth !== 'undefined') {
+		updateData.auth = data.auth;
+	}
+
+	return api.post(`/update_user?code=${process.env.NEXT_PUBLIC_FUNCTION_APP_KEY}`, updateData);
+};
+>>>>>>> Stashed changes
