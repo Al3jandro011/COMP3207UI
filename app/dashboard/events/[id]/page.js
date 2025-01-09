@@ -477,7 +477,7 @@ export default function EventPage({ params }) {
 						{isAuthorized && (
 							<>
 								<Link
-									href={`/events/${resolvedParams.id}/edit`}
+									href={`/dashboard/events/${resolvedParams.id}/edit`}
 									className="inline-block px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-gray-500/50 focus:outline-none"
 								>
 									Edit

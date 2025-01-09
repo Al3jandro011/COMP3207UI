@@ -189,7 +189,7 @@ export default function Home() {
       )}
 
       <Link 
-        href="/events" 
+        href="/dashboard/events" 
         className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 px-6 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 
                   rounded-full flex items-center justify-center shadow-lg hover:from-cyan-400 hover:to-blue-400 
                   transition-all duration-200 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none group z-20"

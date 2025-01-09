@@ -56,7 +56,7 @@ export default function EventTile({
     }, [id]);
 
     return (
-        <Link href={`/events/${id}`} className="block">
+        <Link href={`/dashboard/events/${id}`} className="block">
             <div className="group rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-lg 
                           hover:shadow-cyan-500/10 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 
                           hover:-translate-y-1 cursor-pointer">
