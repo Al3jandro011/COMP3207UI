@@ -24,7 +24,7 @@ export default function Sidebar() {
 	};
 
 	const handleLinkClick = () => {
-		if (window.innerWidth < 1024) { // lg breakpoint is 1024px
+		if (window.innerWidth < 1024) { 
 			setIsMobileMenuOpen(false);
 		}
 	};

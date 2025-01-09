@@ -205,7 +205,6 @@ const AddTicketModal = ({
 		setIsProcessing(true);
 		
 		try {
-			// Get user ID from email
 			const response = await getUserIdFromEmail(emailInput);
 			const userId = response.data.email_to_user_id[emailInput];
 			
@@ -214,14 +213,12 @@ const AddTicketModal = ({
 				return;
 			}
 
-			// Create ticket for the user
 			await createTicket({
 				user_id: userId,
 				event_id: resolvedParams.id,
 				email: emailInput
 			});
 
-			// Refresh ticket holders list
 			const ticketResponse = await getTicket({
 				event_id: resolvedParams.id
 			});
@@ -438,7 +435,7 @@ export default function EventPage({ params }) {
 					user_id: user?.id,
 					event_id: resolvedParams.id 
 				});
-				router.push("/events");
+				router.push("/dashboard/events");
 			} catch (error) {
 				console.error("Error deleting event:", error);
 				alert('Failed to delete event. Please try again.');

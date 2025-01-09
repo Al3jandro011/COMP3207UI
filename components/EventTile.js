@@ -20,7 +20,6 @@ export default function EventTile({
     const [loading, setLoading] = useState(true);
 	const { user, loading: authLoading } = useAuth();
 
-    // Get tickets left count
     useEffect(() => {
         const fetchTicketInfo = async () => {
             try {

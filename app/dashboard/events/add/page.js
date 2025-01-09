@@ -74,7 +74,7 @@ export default function Add() {
         if (selectedBuildingData) {
             setSelectedBuildingId(selectedBuildingData.location_id);
             setRooms(selectedBuildingData.rooms || []);
-            setSelectedRoomCapacity(null); // Reset room capacity when building changes
+            setSelectedRoomCapacity(null);
         } else {
             setSelectedBuildingId('');
             setRooms([]);
@@ -133,7 +133,7 @@ export default function Add() {
             router.push('/events');
         } catch (error) {
             console.error('Error creating event:', error);
-            alert('Failed to create event. Please try again.');
+            alert(error.response?.data?.error || 'Failed to create event. Please try again.');
         }
     };
 
@@ -154,11 +154,9 @@ export default function Add() {
                     const jsonString = jsonMatch[0];
                     const eventData = JSON.parse(jsonString);
                     
-                    // Extract building code from location_id
                     const buildingMatch = eventData.location_id.match(/\(([^)]+)\)/);
                     const buildingCode = buildingMatch ? buildingMatch[1] : eventData.location_id;
                     
-                    // Find the building
                     const building = buildings.find(b => 
                         b.location_code?.toLowerCase() === buildingCode.toLowerCase() ||
                         b.location_name.toLowerCase().includes(eventData.location_id.toLowerCase())
@@ -169,12 +167,10 @@ export default function Add() {
                     if (!building) {
                         alert(`Building "${eventData.location_id}" not found. Available buildings: ${buildings.map(b => `${b.location_name} (${b.location_code})`).join(', ')}`);
                     } else {
-                        // Set the selected building
                         setSelectedBuilding(building.location_name);
                         setSelectedBuildingId(building.location_id);
                         setRooms(building.rooms || []);
 
-                        // Find the room using room_id
                         if (eventData.room_id) {
                             const room = building.rooms?.find(r => 
                                 r.room_code === eventData.room_id ||
@@ -191,7 +187,6 @@ export default function Add() {
                         }
                     }
 
-                    // Validate groups
                     let validGroups = [];
                     let invalidGroups = [];
                     if (eventData.groups && Array.isArray(eventData.groups)) {
@@ -213,7 +208,6 @@ export default function Add() {
                         return date.toISOString().slice(0, 16);
                     };
 
-                    // Update form data
                     setFormData({
                         name: eventData.name || '',
                         description: eventData.desc || '',

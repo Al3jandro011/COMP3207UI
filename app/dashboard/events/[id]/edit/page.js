@@ -234,7 +234,7 @@ export default function EditEvent({ params }) {
             };
 
             await updateEvent(data);
-            router.push(`/events/${resolvedParams.id}`);
+            router.back();
         } catch (error) {
             console.error('Error updating event:', error);
             alert('Failed to update event. Please try again.');

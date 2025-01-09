@@ -95,12 +95,10 @@ export default function Timetable() {
     };
   }, []);
 
-  // Add this useEffect to fetch groups when component mounts
   useEffect(() => {
     const fetchGroups = async () => {
       try {
         const response = await getValidGroups();
-        // Transform the groups into the format needed for the dropdown
         const groupOptions = response.data.groups.map(group => ({
           value: group,
           label: group
@@ -114,17 +112,14 @@ export default function Timetable() {
     fetchGroups();
   }, []);
 
-  // Add this function to filter events based on criteria
   const filterEvents = (events) => {
     return events.filter(event => {
-        // Filter by compulsory status
         if (compulsory.value !== 'all') {
             const isCompulsory = event.tags?.includes('Compulsory');
             if (compulsory.value === 'yes' && !isCompulsory) return false;
             if (compulsory.value === 'no' && isCompulsory) return false;
         }
 
-        // Filter by selected tags/groups
         if (selectedTags.length > 0) {
             const eventGroups = event.groups || [];
             const hasMatchingGroup = selectedTags.some(tag => 
@@ -133,7 +128,6 @@ export default function Timetable() {
             if (!hasMatchingGroup) return false;
         }
 
-        // Filter by date range
         const eventStart = new Date(event.start_date);
         const eventEnd = new Date(event.end_date);
         
@@ -162,7 +156,6 @@ export default function Timetable() {
         return;
       }
 
-        // Get events for all tickets
         const eventPromises = userEventIds.map(eventId => 
             getEvent({ event_id: eventId })
         );
@@ -171,7 +164,6 @@ export default function Timetable() {
         const allEvents = eventResponses.map(response => response.data)
             .filter(Boolean); // Filter out any null/undefined events
 
-        // Apply filters to the events
         const filteredEvents = filterEvents(allEvents);
         
         console.log('All Events:', allEvents);
@@ -249,7 +241,6 @@ export default function Timetable() {
         throw new Error('Auth instance not found');
       }
 
-      // Sign in with additional scope
       const user = await auth2.signIn({
         scope: 'https://www.googleapis.com/auth/calendar'
       });
@@ -263,7 +254,6 @@ export default function Timetable() {
         throw new Error('No auth response received');
       }
 
-      // Test the calendar access
       try {
         const response = await window.gapi.client.calendar.calendarList.list();
         console.log('Calendar access successful:', response.result);
@@ -280,17 +270,14 @@ export default function Timetable() {
         stack: error.stack
       });
       setIsCalendarLinked(false);
-      // Show error to user
       alert(error.message || 'Failed to link Google Calendar. Please try again.');
     }
   };
 
   const handleLinkOutlook = () => {
     try {
-      // Create the Outlook Web URL for calendar access
       const outlookUrl = new URL('https://outlook.live.com/calendar/0/');
       
-      // Open in a new window
       const width = 800;
       const height = 600;
       const left = (window.innerWidth - width) / 2 + window.screenX;
@@ -304,7 +291,6 @@ export default function Timetable() {
 
       if (popup) {
         setIsOutlookLinked(true);
-        // Store the linked status in localStorage
         localStorage.setItem('outlookLinked', 'true');
         console.log('Outlook calendar linked successfully');
       } else {
@@ -350,11 +336,6 @@ export default function Timetable() {
     }
   };
 
-  const handleNavigate = (path) => {
-    router.push(path);
-  };
-
-  // Add this useEffect to restore the linked status
   useEffect(() => {
     const linkedStatus = localStorage.getItem('outlookLinked');
     if (linkedStatus === 'true') {
@@ -362,19 +343,15 @@ export default function Timetable() {
     }
   }, []);
 
-  // Update the handleTimetableToggle function
   const handleTimetableToggle = async (eventId) => {
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Toggle status for this specific event
       setTimetableStatus(prev => ({
         ...prev,
         [eventId]: !prev[eventId]
       }));
 
-      // If adding to timetable and Outlook is linked, add to Outlook calendar
       if (!timetableStatus[eventId] && isOutlookLinked) {
         const event = events.find(e => e.event_id === eventId);
         if (event) {
